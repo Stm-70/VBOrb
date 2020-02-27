@@ -1,0 +1,64 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** 
+ *
+ *  @author  Martin Both
+ */
+public interface IdlConstType extends IdlType
+{
+#endif
+
+	/** Read <const_exp>
+	 *
+	 *  @param	idlScope	Information about the surrounding scope
+	 *  @param	tRef		Next TxtToken, unread() and unget() buffer
+	 *                      are used to unread long operators (´>>´)!
+	 *  @param	idlRd		TxtTokenReader
+	 *  @return				Result value and maybe two unread and unget tokens
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public IdlConstValue readIdlConstValue(IdlScope idlScope, TxtTokenRef tRef,
+		TxtTokenReader idlRd) throws TxtReadException;
+
+	/** Read a subexpression until finding an operator with less or equal
+	 *  priority of prevPrior or unexpected token. If there is no value token
+	 *  an exception is thrown.
+	 *
+	 *  @param	idlScope	Information about the surrounding scope
+	 *  @param	tRef		Next TxtToken, unread() and unget() buffer
+	 *                      are used to unread long operators (´>>´)!
+	 *  @param	idlRd		TxtTokenReader
+	 *	@param	prevPrior
+	 *  @return				Result value and maybe two unread and unget tokens
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public IdlConstValue readSubExpression(IdlScope idlScope, TxtTokenRef tRef,
+		TxtTokenReader idlRd, int prevPrior) throws TxtReadException;
+
+#if defined JP_TAIL
+}
+#endif

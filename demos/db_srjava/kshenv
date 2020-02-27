@@ -1,0 +1,24 @@
+# UNIX ksh environment
+# Please edit this file and call ". kshenv" to set CLASSPATH environment
+
+# JacORB installation directory
+JACORB=/home/t2abot/corba/JacORB_1_4_1
+
+# Set the java class path
+
+# JacORB libraries
+CLASSPATH=${JACORB}/lib/jacorb.jar:${JACORB}/lib/idl.jar
+
+# Current directory
+CLASSPATH=${CLASSPATH}:.
+
+# JDBC driver libraries
+CLASSPATH=${CLASSPATH}:/opt/javax/lib/ifxjdbc.jar
+CLASSPATH=${CLASSPATH}:/opt/javax/lib/ffjdbc13.jar
+
+export CLASSPATH
+
+#export PATH=${PATH}:${JACORB}/bin
+
+# Now you can compile IDL files using
+#java org.jacorb.idl.parser database.idl

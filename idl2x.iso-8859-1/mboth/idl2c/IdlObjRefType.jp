@@ -1,0 +1,57 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlObjRefType.jp"
+
+	/**
+	 *  @param	cPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeC(String cPath) throws IOException
+	{
+		System.out.println("Writing interface " + getScopedName() + " to `"
+			+ getCName(true) + ".c'");
+
+		for(IdlAttribute def= idlAttributes; def != null;
+			def= (IdlAttribute)def.getNext())
+		{	def.writeC(/*out*/);
+		}
+		for(IdlOperation def= idlOperations; def != null;
+			def= (IdlOperation)def.getNext())
+		{	def.writeC(/*out*/);
+		}
+
+/*???		for(IdlException def= idlExceptions; def != null;
+			def= (IdlException)def.getNext())
+		{	def.writeVb(vbPath);
+		}
+		for(IdlStruct def= idlStructs; def != null;
+			def= (IdlStruct)def.getNext())
+		{	def.writeVb(vbPath);
+		}
+		for(IdlUnion def= idlUnions; def != null;
+			def= (IdlUnion)def.getNext())
+		{	def.writeVbCls(vbPath);
+		}
+		for(IdlEnum def= idlEnums; def != null;
+			def= (IdlEnum)def.getNext())
+		{	def.writeVbMod(vbPath);
+		}
+*/
+	}
+
+	/** Write additional server skeleton examples
+	 *
+	 *  @param	cPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeCImpl(String cPath) throws IOException
+	{
+		String cImplName= getCName(true) + "ImplExample";
+		System.out.println("Writing interface " + getScopedName() + " to `"
+			+ cImplName + ".c'");
+	}
+}

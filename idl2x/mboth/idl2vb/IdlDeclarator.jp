@@ -1,0 +1,117 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+
+#define JP_HEAD // extends IdlIdentifier
+
+	#include "../idl2lang/IdlDeclarator.jp"
+
+	private String sVbPrivateVarName;
+	
+	/** VB property
+	 *  @return				p_...
+	 */
+	public String getVbPropertyName()
+	{
+		String idlName= getUnEscName();
+		if(VbWriter.hashResWord(idlName) == null)
+			return idlName;
+		else
+			return "p_" + idlName;
+	}
+
+	/** VB private variable name
+	 *  @return				p_..._
+	 */
+	public String getVbPrivateVarName()
+	{	if(sVbPrivateVarName == null)
+			sVbPrivateVarName= getVbPropertyName() + "_";
+		return sVbPrivateVarName;
+	}
+
+	/** Read the declarator
+	 *  @param	vbC		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbPrivateVarRead(VbClsWriter vbC)
+		throws java.io.IOException
+	{
+		// CORBA arrays are mapped to seperate VB classes
+		// Let/Set and Get properties of IdlDeclarator are coded
+		// in IdlUnion also.
+		idlType.writeVbRead(vbC, getVbPrivateVarName());
+	}
+
+	/** Write the declarator
+	 *  @param	vbC		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbPrivateVarWrite(VbClsWriter vbC)
+		throws java.io.IOException
+	{
+		// CORBA arrays are mapped to seperate VB classes
+		// Let/Set and Get properties of IdlDeclarator are coded
+		// in IdlUnion also.
+		idlType.writeVbWrite(vbC, getVbPrivateVarName());
+	}
+
+	/** 
+	 *  @param	vbC		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbPrivateVarDecl(VbClsWriter vbC)
+		throws java.io.IOException
+	{
+		/* Public variables are always map internaly
+		   to Get, Let, and Set properties. We use therefore private
+		   variables and write our own properity Get/Let/Set methods.
+		   This is also necessarily for valuetype inheritance.
+		   See IdlValStateDcl.
+		*/
+		// CORBA arrays are mapped to seperate VB classes
+		// This is also coded in IdlUnion for a local variable.
+		vbC.writeVarLine(VbWriter.PRIVATE, getVbPrivateVarName(),
+			idlType.getVbName(true));
+	}
+
+	/** Write our own properity Get/Let/Set methods.
+	 *
+	 *  @param	vbC		
+	 *  @param	getOnly		
+	 *  @param	vbInterface		Interface name or null if public
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbPropFuncs(VbClsWriter vbC,
+		boolean getOnly, String vbInterface) throws java.io.IOException
+	{
+		String vbKind= VbWriter.GET;
+		String vbPropertyName= getVbPropertyName();
+		
+		vbC.writeAttributeHead(vbInterface, getUnEscName(),
+			vbPropertyName, vbKind, idlType, /*vbOnErrGo*/false);
+		if(vbInterface == null)
+		{	vbC.writeAssign(vbPropertyName, idlType.isVbSet());
+		}else
+		{	vbC.writeAssign(vbInterface + "_" + vbPropertyName,
+				idlType.isVbSet());
+		}
+		vbC.writeLine(getVbPrivateVarName());
+		vbC.writeAttributeTail(vbInterface,
+			vbPropertyName, vbKind, idlType, /*vbOnErrGo*/false);
+
+		if(getOnly)
+			return;
+		vbC.writeLine();
+		vbKind= idlType.isVbSet()? VbWriter.SET: VbWriter.LET;
+		vbC.writeAttributeHead(vbInterface, getUnEscName(),
+			vbPropertyName, vbKind, idlType, /*vbOnErrGo*/false);
+		vbC.writeAssign(getVbPrivateVarName(), idlType.isVbSet());
+		vbC.writeLine(getUnEscName() + "New");
+		vbC.writeAttributeTail(vbInterface,
+			vbPropertyName, vbKind, idlType, /*vbOnErrGo*/false);
+	}
+}

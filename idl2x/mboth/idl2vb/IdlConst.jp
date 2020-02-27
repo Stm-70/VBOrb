@@ -1,0 +1,75 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlIdentifier implements IdlDefinition
+
+	#include "../idl2lang/IdlConst.jp"
+
+	/** VB name (without general prefix) or null if unset
+	 */
+	private String sVbName;
+	
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *  #pragma vbname <idldef> can change the name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		if(this.sVbName != null)
+			return this.sVbName;
+		this.sVbName= sVbName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	if(sVbName == null)
+		{	// Append names until the highest scope (next IdlContainer) is reached
+			StringBuffer sBuf= new StringBuffer(getUnEscName());
+			for(IdlScope iScope= getSurScope(); iScope != null;
+				iScope= iScope.getSurScope())
+			{	if(iScope instanceof IdlContainer)
+					break;
+				sBuf.insert(0, iScope.getUnEscName());
+			}
+			sVbName= sBuf.toString();
+		}
+		if(bPrefix)
+		{	for(IdlScope iScope= getSurScope(); iScope != null;
+				iScope= iScope.getSurScope())
+			{	if(iScope instanceof IdlContainer)
+					return ((IdlContainer)iScope).getVbModName() + "."
+						+ sVbName;
+			}
+		}
+		return sVbName;
+	}
+
+	/**
+	 *  @param	out		VbModWriter
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbModDefs(VbModWriter out) throws java.io.IOException
+	{
+		IdlConstValue iConstValue= getConstValue();
+		// IdlType iType= this.getConstTypeDef();
+		IdlConstType iConstType= iConstValue.getConstType();
+		
+		out.write(VbWriter.PUBLIC + VbWriter.SP + VbWriter.CONST + VbWriter.SP
+			+ getVbName(false) + VbWriter.SP + VbWriter.AS + VbWriter.SP
+			+ iConstType.getVbName(true) + " = ");
+		iConstValue.writeVbValue(out);
+		out.writeLine();
+	}
+}

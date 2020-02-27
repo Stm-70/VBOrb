@@ -1,0 +1,52 @@
+VBOrb v1.23
+===========
+
+Dieses Verzeichnis enthält die Version 1.23 von VBOrb.
+
+Die jeweils aktuellste Version von VBOrb und IDL2VB bekommen Sie unter
+http://home.t-online.de/home/Martin.Both/vborb_de.html
+
+Der VBOrb ist freie Software. In der Datei COPYING.LIB sind die genauen
+Bedingungen für das Kopieren und Verwenden dieser Software beschrieben.
+
+
+Verzeichnisstruktur
+-------------------
+
+vb/                     Wurzel-Verzeichnis
+
+  COPYING.LIB           Copyright
+
+  LIESMICH.TXT          Diese Datei
+
+  README.TXT            Diese Datei, in englischer Übersetzung
+  
+  NEWS.TXT              Änderungen von Version zu Version
+
+  INSTALL.TXT           Beschreibung der Installation VBOrb
+
+  bin/                  Programme
+    IDL2VB.jar          Java-Programm zum Übersetzen von CORBA IDL-Dateien
+
+  idl2x/                Java-Quellen des IDL2VB-Compilers
+
+  orb/                  VBOrb Klassen
+    VBOrb.vbp           VB-Projekt zum Erzeugen der VBOrb.dll
+    VBOrb1xx.dll        Diese DLL ist Teil jeder VBOrb-Anwendung.
+                        1xx ist die Version von VBOrb.
+
+  include/              IDL-Dateien zum Einbinden in eigene IDL-Dateien
+    generated/          ORB-Module für die eigenen VB-Projekte
+
+  doc/                  Schriftstücke, Beschreibungen
+    index.html            Startseite der HTML-Dokumentation
+
+  naming/               VB-Beispiele für den COS NamingService
+    NameServ            Einfacher Naming Service in VB geschrieben
+    NamingTest          Programm, um einen COS Naming Service zu testen
+
+  demos/                VB-Beispiele und VB-Test-Anwendungen
+
+
+Bitte senden Sie gefundene Fehler, Anmerkungen und Kritik an
+Martin.Both@t-online.de

@@ -1,0 +1,131 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+/*
+   keyword any -> cOrbAny
+   native Servant -> cOrbSkeleton, VbWriter.CORBSKELETON
+   native ::CORBA::AbstractBase -> cOrbAbstractBase, VbWriter.CORBABSTRACTBASE
+   keyword Object -> cOrbObject
+   native  -> cOrbValueBase
+   native ::CORBA::ValueFactory -> cOrbValueFactory
+*/
+
+	#include "../idl2lang/IdlNative.jp"
+
+	/** VB name (without general prefix) or null if unset
+	 */
+	private String sVbName;
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *  #pragma vbname <idldef> can change the name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		if(this.sVbName != null)
+			return this.sVbName;
+		this.sVbName= sVbName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{
+		if(sVbName == null)
+			sVbName= getUnEscName();
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.SET + " " + vbVariable + " = "
+			+ VbWriter.NEW + " " + getVbName(true));
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.INITBYREAD + "(" + VbWriter.OIN + ")");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.WRITEME + "(" + VbWriter.OOUT + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeAssign(vbVariable, true);
+		// mCB.tk_native = 31
+		out.writeLine("oOrb.createPrimitiveTc(31) 'VBOrb.TCNative");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.OANY + "." + "getNative" + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ "insertNative" + "(" + vbVariable + ")");
+	}
+}

@@ -1,0 +1,21 @@
+/* 
+   Copyright (c) 2001 Martin.Both
+   
+   Callback example
+*/
+
+module Client
+{
+	interface Control
+	{
+		void setId(in long id);
+		long getId();
+		void start();
+		string stop();
+		
+		//typedef sequence<octet> octseq;
+		typedef octet octs4096[4096];
+		void sendBigArrayToClient(in octs4096 buffer);
+		void sendWStringToClient(in wstring wstr);
+	};
+};

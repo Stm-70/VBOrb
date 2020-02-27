@@ -1,0 +1,107 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlVoid.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *  Get the Visual Basic Name to identify the type
+	 *
+	 *	@bPrefix	With final prefix?
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	if(bPrefix)
+			throw new InternalError("Void.getVbName");
+		else
+			return IdlSpecification.VOID;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	throw new InternalError("Void.isVbSet");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	throw new InternalError("Void.writeVbRead");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	throw new InternalError("Void.writeVbWrite");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeAssign(vbVariable, true);
+		// mCB.tk_void = 1
+		out.writeLine("oOrb.createPrimitiveTc(1) 'VBOrb.TCVoid");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	// ???
+		out.writeAssign(vbVariable, false);
+		out.writeLine(VbWriter.OANY + "." + "getVoid" + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	// ???
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ "insertVoid" + "(" + vbVariable + ")");
+	}
+}

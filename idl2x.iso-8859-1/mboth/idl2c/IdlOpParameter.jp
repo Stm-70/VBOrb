@@ -1,0 +1,30 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlOpParameter.jp"
+
+	/** C parameter
+	 *  @return				_...
+	 */
+	public String getCParName()
+	{
+		String parName= getUnEscName();
+		if(CWriter.hashResWord(parName) == null)
+			return parName;
+		else
+			return "_" + parName;
+	}
+
+	/** 
+	 *  @param	out		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeCPar(/* CWriter out*/) //throws java.io.IOException
+	{
+		System.out.print(idlType.getCName(true));
+		System.out.print(aOut? " *": " ");
+		System.out.println(getCParName());
+	}
+}

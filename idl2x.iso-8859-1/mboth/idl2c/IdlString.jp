@@ -1,0 +1,37 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlString.jp"
+
+	/** (IdlDefinition)
+	 *  Set the C Name
+	 *
+	 *	@param	CName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== CName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setCName(String CName)
+	{	return CName;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the C Name to identify the definition
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		C Name
+	 */
+	public String getCName(boolean withPrefix)
+	{	if(wide)
+		{	//if(withPrefix)
+				return CWriter.CORBA_ + IdlSpecification.WSTRING;
+			//return IdlSpecification.WSTRING;
+		}else
+		{	//if(withPrefix)
+				return CWriter.CORBA_ + IdlSpecification.STRING;
+			//return IdlSpecification.STRING;
+		}
+	}
+}

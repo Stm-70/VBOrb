@@ -1,0 +1,6 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlBaseType.jp"
+}

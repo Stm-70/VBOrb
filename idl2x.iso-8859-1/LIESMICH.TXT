@@ -1,0 +1,84 @@
+IDL2VB
+======
+
+Dieses Verzeichnis enthält die Quellen des IDL2VB compilers für VBOrb.
+
+Die jeweils aktuellste Version von VBOrb und IDL2VB bekommen Sie unter
+http://home.t-online.de/home/Martin.Both/vborb_de.html
+
+Der IDL2VB ist freie Software. In der Datei COPYING.LIB sind die genauen
+Bedingungen für das Kopieren und Verwenden dieser Software beschrieben.
+
+
+Verzeichnisstruktur
+-------------------
+
+vb/idl2x/               Wurzel-Verzeichnis
+
+  COPYING.LIB           Copyright
+
+  LIESMICH.TXT          Diese Datei
+
+  README.TXT            Diese Datei, in englischer Übersetzung
+
+  Makefile              Makefile
+
+  gnu/getopt/           Java-Quellen für das Parsen der Startparameter
+
+  mboth/util/           Java-Quellen des C-Präprozessors
+
+  mboth/idl2lang/       Java-Quellen des CORBA-IDL-Parser
+
+  mboth/idl2vb/         Java-Quellen des CORBA-IDL nach VisualBasic compilers
+
+
+
+Voraussetzungen
+---------------
+IDL2VB ist in einer UNIX-Entwicklungsumgebung entstanden, deshalb
+empfiehlt es sich, falls sie den IDL2VB Anpassen oder Weiterentwickeln
+möchten, dies ebenfalls unter UNIX zu tun.
+
+Folgende Werkzeuge werden vorausgesetzt:
+ - nedit (Oder irgendein anderer Editor)
+ - make
+ - gcc -E (Der schnelle Präprozessor des GNU-Compilers)
+ - JDK 1.1 oder JDK 1.2 (Java Development Kit)
+
+
+Was sind .jp-Dateien?
+---------------------
+Der IDL-Parser und die VB-Code-Erzeugung sind voneinander getrennt
+worden, um auch andere Sprachen unterstützen zu können. Da Java keine
+Mehrfachvererbung kennt, die hierfür eine elegante Lösung gewesen wäre,
+wird dies durch einen Präprozessor-Lauf simuliert.
+
+In den Verzeichnissen mboth/idl2lang und mboth/idl2vb dürfen sie die
+.java-Dateien nie selbst editieren. Änderungen müssen immer an den
+zugehörigen .jp-Dateien durchgeführt werden.
+
+Beispiele:
+A)
+Sie ändern eine .jp-Datei in mboth/idl2lang. Durch "make IDL2LANG" erzeugen
+Sie die entsprechende .java-Datei und der java-Compiler übersetzt den IDL2LANG.
+Dieser kann getrennt von IDL2VB getestet werden. Danach müssen sie "make clear"
+aufrufen und mit "make IDL2VB" können sie die VB-Code-Generierung neu übersetzen.
+
+B)
+Sie ändern eine .jp-Datei in mboth/idl2vb. Durch "make IDL2VB" erzeugen
+sie die entsprechende .java-Datei und der java-Compiler übersetzt den IDL2VB.
+
+
+make-Ziele
+----------
+"make clear"          Löscht alle automatisch generierten .java- and .class-Dateien.
+"make IDL2LANG"       Erzeugt einen lauffähigen IDL-Parser
+"make IDL2VB"         Erzeugt einen IDL nach VB Compiler
+"make runCB"          Erzeugt die Dateien für das Callback-Beispiel
+"make runDB"          Erzeugt die Dateien für das Datenbank-Beispiel
+"make IDL2VB.jar"     Erzeugt ein Java-Archiv des IDL2VB.
+
+
+
+Bitte senden Sie gefundene Fehler, Anmerkungen und Kritik an
+Martin.Both@t-online.de

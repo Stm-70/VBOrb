@@ -1,0 +1,48 @@
+/*
+   This IDL may be used to reproduces the behavior of 'tnameserv'.
+   'tnameserv' is the name service of Sun's Java ORB in JDK 1.1,
+   1.2 and 1.3.
+   It functions as an initial reference resolver using a pseudo
+   IntitialReferences interface. This behavior was specified in
+   Sun's proposal for the Interoperable Naming Service.
+   However, that proposal was rejected and is thus not a standard.
+
+   Hint to write a server like tnameserv in Visual Basic:
+   VBOrb
+      - Create directory "generated"
+      - Compile IDL "..\..\bin\idl2vb -S -Bgenerated tnameserv.idl"
+
+    Set oOrb = VBOrb.init(ORBId:="", OAPort:="900")
+    Dim oImpl As New c_SunInitialReferencesImpl
+    Call oImpl.Initialize(oOrb)
+    Call oOrb.Connect(oImpl, "INIT")
+    'corbaloc::1.1@HostName:900/INIT
+*/
+
+#if !defined(TNAMESERV_IDL)
+#define TNAMESERV_IDL
+
+#pragma prefix "omg.org"
+
+module CORBA
+{
+	interface ORB
+	{
+		typedef string ObjectId;
+		typedef sequence<ObjectId> ObjectIdList;
+	};
+};
+
+module IOP
+{
+	interface InitialReferences
+	{
+		Object get(in CORBA::ORB::ObjectId id);
+		CORBA::ORB::ObjectIdList list();
+	};
+};
+
+#pragma vbname CORBA Sun
+#pragma vbname IOP Sun
+
+#endif // TNAMESERV_IDL

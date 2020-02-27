@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE>VBOrb</TITLE>
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EF" VLINK="#55188A" ALINK="#FF0000">
+<!-- example of a remark -->
+<H2>
+<FONT COLOR="#009900">Welcome to VBOrb</FONT></H2>
+
+<HR NOSHADE WIDTH="100%">
+<H3>About VBOrb</H3>
+<ul>
+<li>VBOrb is an Object Request Broker.</li>
+<li>VBOrb is written entirely in <A HREF="vbcurios.html">Visual Basic 5</A>.</li>
+<li>VBOrb comes with an IDL to VB compiler called IDL2VB.
+The compiler is written in Java.</li>
+</ul>
+With VBOrb you can write CORBA Visual Basic clients and servers.
+CORBA clients can call methods of remote objects written in any language
+and CORBA servers can call back methods of your local objects. For instance
+you can write your server in Java using a JavaORB and your client in
+VisualBasic using VBOrb. CORBA is an open standard in opposite of
+Microsoft DCOM or COM+. CORBA is specified by the
+<A HREF="http://www.omg.org">OMG</A>.
+<p>
+You can use VBOrb instead of a COM-CORBA-Brigde or to access EJBs
+(Enterprise Java Beans) or to remote control a Microsoft program
+by using VBA (Visual Basic for Applications). Evaluate by yourself.
+
+<H3>VBOrb and IDL2VB sources</H3>
+VBOrb is distributed by me under the
+<A HREF="../COPYING.LIB">`GNU Library General Public License'</A>.
+<BR>For the latest version of VBOrb and the IDL2VB compiler see
+<A HREF="http://home.t-online.de/home/Martin.Both/vborb.html">
+http://home.t-online.de/home/Martin.Both/vborb.html</A>.
+<BR>For documentations study the READMEs of VBOrb in different directories
+and the examples in the demos directory.
+
+<H3>READMEs</H3>
+<IMG SRC="icons/closedFolder.gif" ALT="[DIR]"> <A HREF="dirvb.html">Directory browser</A>
+
+<H3>Programming hints</H3>
+<A HREF="vbpragma.html">#pragma in IDL files</A>,
+<A HREF="vbexception.html">Exception handling</A>
+
+<H3>VBOrb feature list</H3>
+Additional I tell you what is not supported by VBOrb.
+Most ORB vendors didn't mention it although indeed they have
+missing features also.
+<ul>
+<li>Reusable C preprocessor written in Java</li>
+<li>Reusable CORBA 2.4 compliant IDL compiler written in Java</li>
+<li>Support of wide strings (BOM, Codeset component in IOR,
+Codeset service context)</li>
+<li>Support of valuetypes, long long, exceptions, any
+(operation context and truncatable values are not supported)</li>
+<li>Support of corbaloc URL and corbaname URL</li>
+<li>Support of GIOP 1.2, fragments and old Visibroker workaround
+(bidirectional IIOP are not supported)</li>
+<li>Support of connection timeouts (POA and policies are not supported)</li>
+<li>Support of accessing EJB home and remote interfaces using RMI over IIOP,
+boxed Java arrays (see Java to IDL mapping specification) are mapped to
+Visual Basic sequences (Service context exceptions are still not supported)</li>
+<li>Quality: Some companies are using VBOrb in production areas</li>
+<li>Support of colocation (CORBA calls inside of applications)</li>
+</ul>
+
+<BR>
+<HR NOSHADE WIDTH="100%">
+<ADDRESS>
+  <A HREF="mailto:Martin.Both@t-online.de">Martin.Both@t-online.de</A>
+</ADDRESS>
+</BODY>
+</HTML>

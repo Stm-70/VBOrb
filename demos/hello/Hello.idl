@@ -1,0 +1,27 @@
+// Hello example
+//
+// VBOrb
+//    - Create directory "generated"
+//    - Compile IDL "..\..\bin\idl2vb -S -Bgenerated Hello.idl"
+//    - Compile HelloClient.exe "HelloClient.vbp"
+//    - Compile HelloServer.exe "HelloServer.vbp"
+//
+// JDK 1.3.1
+//    - Change current directory to jdk1.3
+//    - Compile IDL "c:\jdk1.3.1\bin\idlj -fall ..\Hello.idl"
+//    - Compile client "javac -classpath . HelloClient.java"
+//    - Compile server "javac -classpath . HelloServer.java"
+//
+// JDK 1.4
+//    - Change current directory to jdk1.4
+//    - Compile IDL "c:\j2sdk1.4.0\bin\idlj -fall ..\Hello.idl"
+//    - Compile client "javac -classpath . HelloClient.java"
+//    - Compile server "javac -classpath . HelloServer.java"
+
+module HelloApp
+{
+	interface Hello
+	{
+		string sayHello();
+	};
+};

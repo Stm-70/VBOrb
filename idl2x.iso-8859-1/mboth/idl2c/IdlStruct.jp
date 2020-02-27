@@ -1,0 +1,18 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlStruct.jp"
+
+	/** (IdlType)
+	 * Get the C Name to identify the type
+	 *
+	 *	@bPrefix	With final prefix?
+	 *	@return		C Name
+	 */
+	public String getCName(boolean bPrefix)
+	{	if(bPrefix)
+			return CWriter.CORBA_ +"struct???";//???
+		return "struct???";//???
+	}
+}

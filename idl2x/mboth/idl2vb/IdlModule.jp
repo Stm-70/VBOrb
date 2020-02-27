@@ -1,0 +1,169 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlContainer
+
+	#include "../idl2lang/IdlModule.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{	return super.setVbName(sVbName);
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean withPrefix)
+	{	return super.getVbName(withPrefix);
+	}
+
+	/** (IdlContainer)
+	 *  Get the Visual Basic Module Name of this IDL definition
+	 *
+	 *	@return		Visual Basic Module Name
+	 */
+	public String getVbModName()
+	{	//if(!(this instanceof IdlSpecification))
+		if(getSurScope() == null)
+			return getVbModPrefix() + "global";
+		else
+			return super.getVbModName();
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{
+		/** Write contained IdlDefinitions
+		 */
+		super.writeVbFiles(opts);
+
+		for(IdlModule def= idlModules; def != null;
+			def= (IdlModule)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		/* Don't done in IdlSpecification to see only forward declared interfaces
+		*/
+		for(IdlInterface def= idlInterfaces; def != null;
+			def= (IdlInterface)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		/* Don't done in IdlSpecification to see only forward declared values
+		*/
+		for(IdlValueType def= idlValueTypes; def != null;
+			def= (IdlValueType)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		for(IdlValueBox def= idlValueBoxes; def != null;
+			def= (IdlValueBox)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+
+		// Write VB module
+		this.writeVbMod(opts.vbPath);
+
+		// Write VB class
+		//this.writeVbCls(opts.vbPath);
+	}
+
+	/** Write VB module
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbMod(String vbPath) throws java.io.IOException
+	{
+		boolean hasToWriteVbMod= false;
+		VbModWriter vbM= null;
+		String sVbModName= getVbModName();
+		
+		/* Check (IdlContainer) definitions
+		*/
+		if(idlEnums != null || idlConsts != null)
+			hasToWriteVbMod= true;
+		
+		/* Check IdlModule definitions
+		*/
+		if(!hasToWriteVbMod)
+		{	for(IdlValueBox def= idlValueBoxes; def != null;
+				def= (IdlValueBox)def.getNext())
+			{	if(def.hasToWriteVbMod())
+				{	hasToWriteVbMod= true;
+					break;
+				}
+			}
+		}
+		
+		//if(!(this instanceof IdlSpecification))
+		if(getSurScope() == null)
+		{
+			if(hasToWriteVbMod)
+			{
+				if(MainOptions.iLogLvl >= 4)
+					System.out.println("I Writing global IDL specifications to `"
+						+ getVbModName() + ".bas'");
+				vbM= new VbModWriter(vbPath, getVbModName(),
+					getFilePos().getFileName());
+
+				// ...
+				vbM.writeLine();
+				vbM.writeLine("'Global IDL specifications");
+			}
+		}else
+		{
+			if(hasToWriteVbMod)
+			{
+				if(MainOptions.iLogLvl >= 4)
+					System.out.println("I Writing module " + getScopedName() + " to `"
+						+ getVbModName() + ".bas'");
+		
+				vbM= new VbModWriter(vbPath, getVbModName(),
+					getFilePos().getFileName());
+
+				// ...
+				vbM.writeLine();
+				vbM.writeLine("'" + IdlSpecification.MODULE + " "
+					+ getScopedName().toString());
+			}else
+			{	if(MainOptions.iLogLvl >= 4)
+					System.out.println("I Entering module " + getScopedName());
+			}
+		}
+		if(vbM != null) // hasToWriteVbMod
+		{
+			// First of all write constants, later it is not allowed.
+			
+			/* (IdlContainer)
+			*/
+			this.writeVbModConsts(vbM);
+
+			/* IdlModule
+			*/
+			for(IdlValueBox def= idlValueBoxes; def != null;
+				def= (IdlValueBox)def.getNext())
+			{	def.writeVbModHelpers(vbM);
+			}
+			
+			/* (IdlContainer)
+			*/
+			this.writeVbModHelpers(vbM);
+		
+			vbM.close();
+		}
+	}
+}

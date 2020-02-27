@@ -1,0 +1,55 @@
+Dieses Beispiel ist nicht mehr aktuell!!!
+
+Datenbank-Server mit IIOP-Schnittstelle in Java
+===============================================
+
+Für die Übersetzung und Ausführung dieses Beispiels wird
+- ein JDBC-Treiber
+- eine SQL-Datenbank
+- und JacORB oder ein anderer Java-ORB benötigt.
+Für JacORB siehe http://www.inf.fu-berlin.de/~brose/jacorb oder
+http://jacorb.inf.fu-berlin.de
+
+Für das Setzen des CLASSPATH in einer UNIX-Umgebung ist die Datei kshenv
+zu editieren und das Setzen erfolgt dann mit
+. kshenv
+
+Übersetzt wird der Server z.B. mit
+javac dbImpl/Server.java
+
+Zur Erinnerung:
+Sollten Sie JDK 1.2 oder höher verwenden, müssen Sie die Java-
+Properties-Datei orb.properties im Verzeichnis JAVA_HOME/lib anlegen
+oder anpassen, um JacORB anstatt den JDK-ORB zu verwenden.
+
+Gestartet wird der Server z.B. mit
+java dbImpl.Server ior.txt
+
+HINWEIS: Dieser Server ist nicht perfekt und man kann ihn deshalb
+so nicht in einer Produktionsumgebung einsetzen.
+
+Beispiel für eine IOR, mit der der Client die Verbindung zum Server aufnimmt
+corbaloc::remotehost:9999/DB/POA/Manager
+
+Beispiel für eine URL für den JDBC-Treiber von Informix
+jdbc:informix-sqli:remotehost:1525/stores7:informixserver=infserv
+
+
+Verzeichnisstruktur
+-------------------
+
+vb/demo/db_srjava/      Dieses Verzeichnis
+
+  LIESMICH.TXT          Diese Datei
+
+  README.TXT            Diese Datei, in englischer Übersetzung
+
+  kshenv                UNIX-Korn-Shell Umgebungsvariablen
+
+  Makefile              UNIX-Makefile für die Java-Anwendung
+
+  dbImpl/               Selbsterstellte Klassen für die Java-Anwendung
+
+    Server.java         Die Klasse mit der main-Methode
+
+  DB/                   Vom IDL2JAVA-Compiler generierte Klassen

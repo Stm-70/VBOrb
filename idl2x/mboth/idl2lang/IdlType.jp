@@ -1,0 +1,83 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import java.io.IOException;
+import mboth.util.*;
+
+/** 
+ *
+ *  @author  Martin Both
+ */
+public interface IdlType extends IdlDefinition
+{
+#endif
+
+	/** Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType();
+
+	/** Is a complete type (e.g. to be a member of structure or union)?
+	 *  A forward declared struct or union is an incomplete type.
+	 *  A struct or union under definition is an incomplete type.
+	 *  A sequence of a struct or union under definition is a complete type.
+	 *  A forward declared interface is complete enough to be a complete type.
+	 *  struct Node						// struct or union
+	 *  {	Node nextNode;				// Is not allowed (incomplete type)
+	 *		sequence<Node, 1> nextNode;	// Is allowed
+	 *  };
+	 *  interface Node
+	 *  {	Node nextNode();			// Is allowed
+	 *  };
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType();
+
+	/** Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType();
+
+	/** Is an anonymous type?
+	 *  (An other design would be to implement an IdlAnonymous interface)
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType();
+
+	/** Is a local type?
+	 *  (Is a local interface or has a local interface member.)
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType();
+
+	/** Get the origin type of a typedef if not an array declarator.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType();
+	
+#if defined JP_TAIL
+}
+#endif

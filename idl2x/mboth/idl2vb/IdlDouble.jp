@@ -1,0 +1,163 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlDouble.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *  Get the Visual Basic Name to identify the type
+	 *
+	 *	@bPrefix	With final prefix?
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	String sVbName;
+		if(idlName == IdlSpecification.FLOAT)
+			sVbName= VbWriter.SINGLE;
+		else if(idlName == IdlSpecification.DOUBLE)
+			sVbName= VbWriter.DOUBLE;
+		else
+			sVbName= bPrefix? VbWriter.CORBLONGDOUBLE:
+				"Longdouble";
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return idlName != IdlSpecification.FLOAT
+			&& idlName != IdlSpecification.DOUBLE;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String readFunc;
+		boolean vbSet;
+		if(idlName == IdlSpecification.FLOAT)
+		{	readFunc= "readFloat";
+			vbSet= false;
+		}else if(idlName == IdlSpecification.DOUBLE)
+		{	readFunc= "readDouble";
+			vbSet= false;
+		}else
+		{	readFunc= "readLongdouble";
+			vbSet= true;
+		}
+		out.writeAssign(vbVariable, vbSet);
+		out.writeLine(VbWriter.OIN + "." + readFunc + "()");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String writeFunc;
+		if(idlName == IdlSpecification.FLOAT)
+			writeFunc= "writeFloat";
+		else if(idlName == IdlSpecification.DOUBLE)
+			writeFunc= "writeDouble";
+		else
+			writeFunc= "writeLongdouble";
+		
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OOUT + "."
+			+ writeFunc + "(" + vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String sTC;
+		if(idlName == IdlSpecification.FLOAT)
+			sTC= "6";	// mCB.tk_float = 6
+		else if(idlName == IdlSpecification.DOUBLE)
+			sTC= "7";	// mCB.tk_double = 7
+		else
+			sTC= "25";	// mCB.tk_longdouble = 25
+		out.writeAssign(vbVariable, true);
+		out.writeLine("oOrb.createPrimitiveTc(" + sTC + ") 'VBOrb.TC...");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String getFunc;
+		boolean vbSet;
+		if(idlName == IdlSpecification.FLOAT)
+		{	getFunc= "getFloat";
+			vbSet= false;
+		}else if(idlName == IdlSpecification.DOUBLE)
+		{	getFunc= "getDouble";
+			vbSet= false;
+		}else
+		{	getFunc= "getLongdouble";
+			vbSet= true;
+		}
+		out.writeAssign(vbVariable, vbSet);
+		out.writeLine(VbWriter.OANY + "." + getFunc + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String insertFunc;
+		if(idlName == IdlSpecification.FLOAT)
+			insertFunc= "insertFloat";
+		else if(idlName == IdlSpecification.DOUBLE)
+			insertFunc= "insertDouble";
+		else
+			insertFunc= "insertLongdouble";
+
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ insertFunc + "(" + vbVariable + ")");
+	}
+}

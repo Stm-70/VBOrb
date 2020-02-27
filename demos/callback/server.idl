@@ -1,0 +1,20 @@
+/* 
+   Copyright (c) 2001 Martin.Both
+*/
+
+#include "client.idl"
+
+module Server
+{
+	interface Counter;
+	interface Coordinator
+	{
+		Counter register(in Client::Control clientObjRef);
+		void unregister(in Client::Control clientObjRef);
+	};
+	interface Counter
+	{
+		attribute long sum;
+		long increment();
+	};
+};

@@ -1,0 +1,130 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlScope	implements IdlDefinition
+
+	#include "../idl2lang/IdlContainer.jp"
+
+	/** VB name (without general prefix) or null if unset
+	 */
+	private String sVbName;
+	
+	/** (IdlDefinition)
+	 *  Set the VB Name
+	 *
+	 *	@param	VbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== VbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String VbName)
+	{
+		if(this.sVbName != null)
+			return this.sVbName;
+		this.sVbName= VbName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix
+	 *  					is used to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean withPrefix)
+	{
+		if(this.sVbName == null)
+		{	IdlContainer surContainer= this.getIdlContainer();
+			if(surContainer == null)
+				this.sVbName= "";	// IdlSpecification
+			else
+				this.sVbName= surContainer.getVbName(false)
+					+ getUnEscName();
+		}
+		if(withPrefix)
+			return this.getVbClsPrefix() + this.sVbName;
+		return this.sVbName;
+	}
+
+	/** Get the Visual Basic Module Name of this IDL container definition
+	 *
+	 *	@return		Visual Basic Module Name
+	 */
+	public String getVbModName()
+	{	return getVbModPrefix() + this.getVbName(false);
+	}
+
+	/** Write TypeId constant declaration
+	 *  Const sTypeId As String = "..."
+	 *  @param	out
+	 *  @param	name		"interface", "struct", ...
+	 *  @param	isPublic	"Public Const TypeId ..." or "Const sTypeId ..."
+	 *
+	 *	@exception	IOException
+	 */
+	public void writeConstScopeTypeId(VbWriter out, String name,
+		boolean isPublic) throws java.io.IOException
+	{
+		out.writeLine("'" + name + " " + getScopedName().toString());
+		out.writeConstTypeId(isPublic, getTypeId());
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{	
+		// idlTypedefs
+		for(IdlStruct def= idlStructs; def != null;
+			def= (IdlStruct)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		for(IdlUnion def= idlUnions; def != null;
+			def= (IdlUnion)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		// idlEnums
+		// idlConsts
+		for(IdlException def= idlExceptions; def != null;
+			def= (IdlException)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+	}
+
+	/**
+	 *  @param	out		VbModWriter
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbModConsts(VbModWriter vbM) throws java.io.IOException
+	{
+		if(idlConsts != null)
+		{	vbM.writeLine();
+			vbM.writeLine("'Constants");
+		}
+		for(IdlConst def= idlConsts; def != null;
+			def= (IdlConst)def.getNext())
+		{	def.writeVbModDefs(vbM);
+		}
+		for(IdlEnum def= idlEnums; def != null;
+			def= (IdlEnum)def.getNext())
+		{	def.writeVbModConsts(vbM);
+		}
+	}
+	
+	/**
+	 *  @param	out		VbModWriter
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbModHelpers(VbModWriter vbM) throws java.io.IOException
+	{
+		for(IdlEnum def= idlEnums; def != null;
+			def= (IdlEnum)def.getNext())
+		{	def.writeVbModHelpers(vbM);
+		}
+	}
+}

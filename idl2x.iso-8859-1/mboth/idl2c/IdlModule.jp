@@ -1,0 +1,55 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlModule.jp"
+	
+	/**
+	 *  @param	opts.out_path	Prefix
+	 *  @param	opts.srv_out	Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeCFiles(MainOptions opts) throws java.io.IOException
+	{
+		/** Write contained IdlDefinitions
+		 */
+//???		super.writeCFiles(opts);
+
+		for(IdlModule def= idlModules; def != null;
+			def= (IdlModule)def.getNext())
+		{	def.writeCFiles(opts);
+		}
+
+		//if(!(this instanceof IdlSpecification))
+		if(getSurScope() == null)
+		{
+		}else
+		{	if(MainOptions.iLogLvl >= 4)
+				System.out.println("I Writing module " + getScopedName());
+		}
+		for(IdlInterface iInterface= idlInterfaces; iInterface != null;
+			iInterface= (IdlInterface)iInterface.getNext())
+		{	iInterface.writeC(opts.out_path);
+			if(opts.srv_out)
+				iInterface.writeCImpl(opts.out_path);
+		}
+/***???		for(IdlException def= idlExceptions; def != null;
+			def= (IdlException)def.getNext())
+		{	def.writeVb(vbPath);
+		}
+		for(IdlStruct def= idlStructs; def != null;
+			def= (IdlStruct)def.getNext())
+		{	def.writeVb(vbPath);
+		}
+		for(IdlUnion def= idlUnions; def != null;
+			def= (IdlUnion)def.getNext())
+		{	def.writeVbCls(vbPath);
+		}
+		for(IdlEnum def= idlEnums; def != null;
+			def= (IdlEnum)def.getNext())
+		{	def.writeVbCls(vbPath);
+		}
+***???*/
+	}
+}

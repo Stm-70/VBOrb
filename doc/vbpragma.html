@@ -1,0 +1,104 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.51 [en] (X11; I; Linux 2.2.5 i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#55188A" alink="#FF0000">
+
+<h2><font color="#009900">Using of #pragma in IDL files</font></h2>
+
+<hr NOSHADE WIDTH="100%">
+<h2>Using #pragma vbname</h2>
+With <tt>#pragma vbname</tt> you can map an IDL name to
+any VB name you want. See the following examples.
+<h3>The reason why #pragma vbname exists</h3>
+It is not possible to compile VB programs to executable files
+if project name plus class name has more than 39 characters
+due to a limitation of VB5 and ActiveX. Please use
+the #pragma vbname in your IDL files to work around.
+
+<h3>Example of using #pragma vbname</h3>
+<tt>
+module CosNaming<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;#pragma vbname CosNaming<BR>
+&nbsp;&nbsp;&nbsp;// A good method to shorten VB names is setting a module name to nothing.<BR>
+&nbsp;&nbsp;&nbsp;// Above #pragma sets the module name CosNaming to nothing<BR>
+&nbsp;&nbsp;&nbsp;<BR>
+&nbsp;&nbsp;&nbsp;interface NamingContext<BR>
+&nbsp;&nbsp;&nbsp;{ // VB name of this interface will be c_NamingContext<BR>
+&nbsp;&nbsp;&nbsp;&nbsp; // Without #pragma the VB name would be c_CosNamingNamingContext<BR>
+&nbsp;&nbsp;&nbsp;};<BR>
+};</tt>
+<h3>Example of using #pragma together with __IDL2VB__ macro</h3>
+<tt>
+module CosNaming<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;// If you have problems using #pragma with other IDL compilers<BR>
+&nbsp;&nbsp;&nbsp;// but the preprocessor works fine so you can write following<BR>
+&nbsp;&nbsp;&nbsp;#if defined __IDL2VB__<BR>
+&nbsp;&nbsp;&nbsp;#pragma vbname CosNaming<BR>
+&nbsp;&nbsp;&nbsp;#endif<BR>
+&nbsp;&nbsp;&nbsp;<BR>
+&nbsp;&nbsp;&nbsp;interface NamingContext<BR>
+&nbsp;&nbsp;&nbsp;{ // VB name of this interface will be c_NamingContext<BR>
+&nbsp;&nbsp;&nbsp;};<BR>
+};</tt>
+<h3>Example of shortening an interface name</h3>
+<tt>
+module grid<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;interface MyServer<BR>
+&nbsp;&nbsp;&nbsp;{ // interface name will be c_gridMySrv<BR>
+&nbsp;&nbsp;&nbsp;};<BR>
+&nbsp;&nbsp;&nbsp;// Map the interface name MyServer to MySrv<BR>
+&nbsp;&nbsp;&nbsp;#pragma vbname MyServer MySrv<BR>
+};</tt>
+<h3>Example of setting a name of an anonymous sequence</h3>
+<tt>
+module grid<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;typedef sequence&lt;sequence&lt;long> > Fred;<BR>
+&nbsp;&nbsp;&nbsp;<BR>
+&nbsp;&nbsp;&nbsp;// Map anonymous sequence of long to SeqOfLng<BR>
+&nbsp;&nbsp;&nbsp;#pragma vbname sequence&lt;long> SeqOfLng<BR>
+};</tt>
+
+<h2>Using #pragma vbclsprefix</h2>
+With <tt>#pragma vbclsprefix</tt> you can set the prefix of all
+generated VB classes. The default prefix is c_. This default can be
+overwritten by compiler option -C.
+<h3>Example of setting VB class prefix</h3>
+<tt>
+// Set the VB class prefix to cIdl<BR>
+#pragma vbclsprefix cIdl<BR>
+<BR>
+module grid<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;interface MyServer<BR>
+&nbsp;&nbsp;&nbsp;{ // VB class name of this interface will be cIdlgridMyServer.cls<BR>
+&nbsp;&nbsp;&nbsp;&nbsp; // Without #pragma the VB name would be c_gridMyServer.cls<BR>
+&nbsp;&nbsp;&nbsp;};<BR>
+};</tt>
+
+<h2>Using #pragma vbmodprefix</h2>
+With <tt>#pragma vbmodprefix</tt> you can set the prefix of all
+generated VB modules. The default prefix is m_. This default can be
+overwritten by compiler option -M.
+<h3>Example of setting VB module prefix</h3>
+<tt>
+// Set the VB module prefix to mIdl<BR>
+#pragma vbmodprefix mIdl<BR>
+<BR>
+module grid<BR>
+{<BR>
+&nbsp;&nbsp;&nbsp;interface MyServer<BR>
+&nbsp;&nbsp;&nbsp;{ // VB module name of this interface will be mIdlgridMyServer.bas<BR>
+&nbsp;&nbsp;&nbsp;&nbsp; // Without #pragma the VB name would be m_gridMyServer.bas<BR>
+&nbsp;&nbsp;&nbsp;};<BR>
+};</tt>
+
+<hr NOSHADE WIDTH="100%">
+</body>
+</html>

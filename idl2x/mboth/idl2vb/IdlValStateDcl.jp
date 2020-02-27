@@ -1,0 +1,45 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlDeclarator
+
+	#include "../idl2lang/IdlValStateDcl.jp"
+
+	/** (IdlDeclarator)
+	 *  VB property
+	 *  @return				...Prop
+	 */
+	public String getVbPropertyName()
+	{
+		String sVbPropertyName= IdlOperation.convertOpOrAttr2VB(getUnEscName());
+		if(VbWriter.hashResWord(sVbPropertyName) == null)
+			return sVbPropertyName;
+		else
+			return sVbPropertyName + "Prop";
+	}
+
+	/** 
+	 *  @param	vbC		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbPrivateStateVarDecl(VbClsWriter vbC)
+		throws java.io.IOException
+	{
+		super.writeVbPrivateVarDecl(vbC);
+	}
+
+	/** Write our own properity Get/Let/Set methods.
+	 *
+	 *  @param	vbC		
+	 *  @param	forcePublic		
+	 *  @param	vbInterface		Interface name or null if public
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbStatePropFuncs(VbClsWriter vbC,
+		boolean forcePublic, String vbInterface) throws java.io.IOException
+	{
+		super.writeVbPropFuncs(vbC, /*getOnly*/!bPublic && !forcePublic,
+			vbInterface);
+	}
+}

@@ -1,0 +1,504 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlContainer implements IdlType
+
+	#include "../idl2lang/IdlValueType.jp"
+
+	/**
+	 */
+	private String vbClsName;
+	
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return super.setVbName(sVbName);
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean withPrefix)
+	{	if(vbClsName == null)
+			vbClsName= super.getVbName(true);
+		return withPrefix? vbClsName: super.getVbName(false);
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.SET + " " + vbVariable + " = "
+			+ VbWriter.OIN + ".readValue(" + VbWriter.NEW + " "
+			+ getVbName(true) + ")");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OOUT
+			+ ".writeValue(" + vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(getVbModName() + "." + VbWriter.TYPECODE + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.OANY + "." + "getVal" + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ "insertVal" + "(" + vbVariable + ")");
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{
+		if(getFileIncludeLvl() > IDL2VB.iGenIncludeLvl)
+		{	if(MainOptions.iLogLvl >= 8)
+				System.out.println("D Valuetype " + getScopedName()
+					+ " is included only");
+			return;
+		}
+		// Only forward declaration?
+		if(!isDefined())
+		{	if(MainOptions.iLogLvl >= 4)
+				System.out.println("I Valuetype " + getScopedName()
+					+ " is only forward declared");
+			return;
+		}
+
+		/** Write contained IdlDefinitions
+		 */
+		super.writeVbFiles(opts);
+
+		// Write VB module
+		this.writeVbMod(opts.vbPath);
+		
+		// Write VB class
+		this.writeVbCls(opts.vbPath);
+
+		// Writing VB value type factory class
+		IdlValueBase.writeFactoryCls(getScopedName().toString(),
+			getFilePos().getFileName(), getVbName(true), opts.vbPath);
+	}
+
+	/** Write VB module
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbMod(String vbPath) throws java.io.IOException
+	{
+		String sVbModName= getVbModName();
+		if(MainOptions.iLogLvl >= 4)
+			System.out.println("I Writing valuetype " + getScopedName()
+				+ " to `" + sVbModName + ".bas'");
+
+		VbModWriter vbM= new VbModWriter(vbPath, sVbModName,
+			getFilePos().getFileName());
+
+		// First of all write constants, later it is not allowed.
+		
+		// Write TypeId constant declaration
+		vbM.writeLine();
+		this.writeConstScopeTypeId(vbM, IdlSpecification.VALUETYPE,
+			/* isPublic */ true);
+
+		/* (IdlContainer)
+		*/
+		this.writeVbModConsts(vbM);
+
+		/* (IdlContainer)
+		*/
+		this.writeVbModHelpers(vbM);
+
+		/*** ???
+		vbM.writeLine();
+		vbM.writeLine("'Helper");
+		vbM.writeFuncHead(VbWriter.PUBLIC, VbWriter.NARROW);
+		vbM.writeFuncArg(VbWriter.BYVAL, VbWriter.OBJREF, VbWriter.CORBOBJREF,
+			null);
+		vbM.writeFuncBody(getVbName(true), false);
+		String newVbObjRefName= "o" + getVbName(false);
+		vbM.writeDimLine(newVbObjRefName, getVbName(true));
+		vbM.writeLine(VbWriter.SET + VbWriter.SP + newVbObjRefName
+			+ " = " + VbWriter.NEW + VbWriter.SP + getVbName(true));
+		vbM.writeLine(VbWriter.SET + VbWriter.SP + newVbObjRefName
+			+ " = " + newVbObjRefName + "." + VbWriter.NARROW + "("
+			+ VbWriter.OBJREF + ")");
+		vbM.writeLine(VbWriter.SET + VbWriter.SP + VbWriter.NARROW
+			+ " = " + newVbObjRefName);
+		vbM.writeFuncTail(null, null);
+		****/
+
+		vbM.writeLine();
+		vbM.writeLine("'Helper");
+		vbM.writeFuncHead(VbWriter.PUBLIC, VbWriter.TYPECODE);
+		vbM.writeFuncBody(VbWriter.CORBTYPECODE, true);
+		vbM.writeDimLine("oOrb", "cOrbImpl");
+		vbM.writeAssign("oOrb", true);
+		vbM.writeLine(IDL2VB.getVbOrbDLL() + ".defaultOrb()");
+		vbM.writeLine("'Get previously created recursive or concrete TypeCode");
+		vbM.writeDimLine("oRecTC", VbWriter.CORBTYPECODE);
+		vbM.writeAssign("oRecTC", true);
+		vbM.writeLine("oOrb.getRecursiveTC(" + VbWriter.TYPEID
+			+ ", 29) 'mCB.tk_value");
+		vbM.writeIf("oRecTC" + VbWriter.SP + VbWriter.IS
+			+ VbWriter.SP + VbWriter.NOTHING);
+		vbM.writeThen();
+		vbM.writeLine("'Create place holder for TypeCode to avoid endless recursion");
+		vbM.writeAssign("oRecTC", true);
+		vbM.writeLine("oOrb.createRecursiveTc(" + VbWriter.TYPEID + ")");
+		vbM.writeOnErrorLine("ErrRollback");
+		vbM.writeLine("'Describe value members");
+		vbM.writeDimLine("oMemSeq", "cCBValueMemberSeq");
+		vbM.writeAssign("oMemSeq", true);
+		vbM.writeLine(VbWriter.NEW + VbWriter.SP + "cCBValueMemberSeq");
+		vbM.writeAssign("oMemSeq.Length", false);
+		getStateDcls();
+		vbM.writeLine(Integer.toString(this.iAllSts.length));
+		for(int iLen= 0; iLen < this.iAllSts.length; iLen++)
+		{	IdlValStateDcl def= this.iAllSts[iLen];
+			String sItem= "oMemSeq.Item(" + Integer.toString(iLen) + ")";
+			vbM.writeAssign(sItem, true);
+			vbM.writeLine(VbWriter.NEW + VbWriter.SP + "cCBValueMember");
+			vbM.writeAssign(sItem + ".name", false);
+			vbM.writeLine("\"" + def.getUnEscName() + "\"");
+			//vbM.writeAssign(sItem + ".id", false);
+			//vbM.writeLine("\"" + def.getTypeId() + "\"");
+			//vbM.writeAssign(sItem + ".defined_in", false);
+			//vbM.writeLine("\"\" '???");
+			//vbM.writeAssign(sItem + ".version", false);
+			//vbM.writeLine("\"\" '???");
+			def.getIdlType().writeVbAssignTypeCode(vbM, sItem + ".p_type");
+			vbM.writeAssign(sItem + ".access", false);
+			if(!def.isPublic())
+				vbM.writeLine("0 'PRIVATE_MEMBER");
+			else
+				vbM.writeLine("1 'PUBLIC_MEMBER");
+		}
+		vbM.writeLine("'Overwrite place holder");
+		vbM.writeDimLine("iTypeModifier", VbWriter.INTEGER);
+		vbM.writeAssign("iTypeModifier", false);
+		if(this.bCustom)
+			vbM.writeLine("1 'VM_CUSTOM");
+		else if(this.bAbstract)
+			vbM.writeLine("2 'VM_ABSTRACT");
+		else if(this.bTruncatable)
+			vbM.writeLine("3 'VM_TRUNCATABLE");
+		else
+			vbM.writeLine("0 'VM_NONE");
+		vbM.writeDimLine("oConcreteBase", VbWriter.CORBTYPECODE);
+		if(this.idlValueTypes == null)
+		{	vbM.writeAssign("oConcreteBase", true);
+			vbM.writeLine(VbWriter.NOTHING);
+		}else
+		{	idlValueTypes[0].writeVbAssignTypeCode(vbM, "oConcreteBase");
+		}
+		vbM.writeLine(VbWriter.CALL + VbWriter.SP
+			+ "oRecTC.setRecTc2ValueTc(\"" + getUnEscName()
+			+ "\", iTypeModifier, oConcreteBase, oMemSeq)");
+		vbM.writeEndIf();
+		vbM.writeAssign(VbWriter.TYPECODE, true);
+		vbM.writeLine("oRecTC");
+		vbM.writeLine(VbWriter.EXIT + VbWriter.SP + VbWriter.FUNCTION);
+		vbM.writeLabelLine("ErrRollback");
+		vbM.writeLine(VbWriter.CALL + VbWriter.SP + "oRecTC.destroy");
+		vbM.writeLabelLine(VbWriter.ERRHANDLER);
+		vbM.writeErrReraiseLine(VbWriter.TYPECODE);
+		vbM.writeFuncTail(null, null);
+
+		vbM.close();
+	}
+	
+	/** Write VB class
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbCls(String vbPath) throws java.io.IOException
+	{
+		// Write VB valuetype class
+		String vbWriteName;
+		boolean bSimpleValue= IDL2VB.bSimpleValues && !isCustom();
+		if(bSimpleValue)
+		{	vbWriteName= getVbName(true);
+			if(MainOptions.iLogLvl >= 4)
+				System.out.println("I Writing valuetype " + getScopedName()
+					+ " as simple to `" + vbWriteName + ".cls'");
+		}else
+		{	vbWriteName= getVbName(true) + "Example";
+			if(MainOptions.iLogLvl >= 4)
+				System.out.println("I Writing valuetype " + getScopedName()
+					+ " as example to `" + vbWriteName + ".cls'");
+		}
+		
+		VbClsWriter vbC= new VbClsWriter(vbPath, vbWriteName,
+			getFilePos().getFileName());
+
+		if(!bSimpleValue)
+		{	vbC.writeLine();
+			vbC.writeLine("'You can use this class as a value example:");
+			vbC.writeLine("' Rename class to " + getVbName(true)
+				+ " and save the file as " + getVbName(true) + ".cls.");
+			vbC.writeLine("' Finally write your own local value operations.");
+		}
+		
+		/* Implements cOrbAbstractBase, cOrbValueBase
+		*/
+		vbC.writeLine();
+		vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+			+ VbWriter.CORBABSTRACTBASE);
+		vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+			+ VbWriter.CORBVALUEBASE);
+		
+		/* Implements direct base valuetypes
+		*/
+		if(idlValueTypes != null)
+		{	for(int i= 0; i < idlValueTypes.length; i++)
+			{	IdlValueType iValueType= idlValueTypes[i];
+				vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+					+ iValueType.getVbName(true));
+			}
+		}
+		/* Implements [abstract] interfaces
+		*/
+		if(idlInterfaces != null)
+		{	for(int i= 0; i < idlInterfaces.length; i++)
+			{	IdlInterface iInterface= idlInterfaces[i];
+				vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+					+ iInterface.getVbName(true));
+			}
+		}
+
+		// Write TypeId constant declaration
+		vbC.writeLine();
+		this.writeConstScopeTypeId(vbC, IdlSpecification.VALUETYPE,
+			/* isPublic */ false);
+		getStateDcls();
+		if(iAllSts.length != 0)
+		{	vbC.writeLine();
+			vbC.writeLine("'State member(s)");
+			for(int st= 0; st < iAllSts.length; st++)
+			{	IdlValStateDcl iStateDcl= iAllSts[st];
+				iStateDcl.writeVbPrivateStateVarDecl(vbC);
+			}
+		}
+		// Implements cOrbAbstractBase
+		vbC.writeLine();
+		vbC.writeFuncThisObject(VbWriter.FRIEND,
+			"OrbAbstractBase", VbWriter.CORBABSTRACTBASE);
+
+		// cOrbAbstractBase_isObjRef()
+		vbC.writeAbstractBaseIsObjRef(false);
+		
+		// Implements cOrbValueBase
+		vbC.writeLine();
+		vbC.writeFuncThisObject(VbWriter.FRIEND,
+			"OrbValueBase", VbWriter.CORBVALUEBASE);
+		
+		String vbInterface= VbWriter.CORBVALUEBASE;
+		vbC.writeLine();
+		vbC.writeFuncHead(VbWriter.PRIVATE, vbInterface + "_UniqueId");
+		vbC.writeFuncBody(VbWriter.LONG, false);
+		vbC.writeLine(vbInterface + "_UniqueId = " + IDL2VB.getVbOrbDLL()
+			+ ".getNextUniqueId()");
+		vbC.writeFuncTail(null, null);
+		
+		// Helper, initByRead()
+		vbC.writeInitByReadHead(VbWriter.CORBVALUEBASE, false);
+		getStateDcls();
+		for(int st= 0; st < iAllSts.length; st++)
+		{	IdlValStateDcl iStateDcl= iAllSts[st];
+			iStateDcl.writeVbPrivateVarRead(vbC);
+		}
+		vbC.writeExitEnd(VbWriter.SUB, getUnEscName() + ".read", null);
+		
+		// Helper, writeMe()
+		vbC.writeWriteMeHead(VbWriter.CORBVALUEBASE);
+		getStateDcls();
+		for(int st= 0; st < iAllSts.length; st++)
+		{	IdlValStateDcl iStateDcl= iAllSts[st];
+			iStateDcl.writeVbPrivateVarWrite(vbC);
+		}
+		vbC.writeExitEnd(VbWriter.SUB, getUnEscName() + ".write", null);
+
+		// getIds()
+		final String ITEM= "Item";
+		String sTypeIds[]= getTypeIds();
+		vbC.writeLine();
+		vbC.writeFuncHead(VbWriter.PRIVATE, vbInterface + "_getIds");
+		vbC.writeFuncArg(VbWriter.BYVAL, ITEM, VbWriter.INTEGER, null);
+		vbC.writeFuncBody(VbWriter.STRING, false);
+		vbC.writeLine(VbWriter.SELECT + VbWriter.SP + VbWriter.CASE
+			+ VbWriter.SP + ITEM);
+		for(int ti= 0; ti < sTypeIds.length; ti++)
+		{	String sTypeId;
+			if(ti == 0)
+			{	sTypeId= VbWriter.STYPEID;
+			}else
+			{	sTypeId= "\"" + sTypeIds[ti] + "\"";
+			}
+			vbC.writeLine(VbWriter.CASE + VbWriter.SP + ti + ": "
+				+ vbInterface + "_" + "getIds" + " = " + sTypeId);
+		}
+		vbC.writeLine(VbWriter.END + VbWriter.SP + VbWriter.SELECT);
+		vbC.writeFuncTail(null, null);
+
+		// isCustom()
+		vbC.writeLine();
+		vbC.writeFuncHead(VbWriter.PRIVATE, vbInterface + "_isCustom");
+		vbC.writeFuncBody(VbWriter.BOOLEAN, false);
+		vbC.writeLine(vbInterface + "_isCustom = "
+			+ (isCustom()? VbWriter.TRUE: VbWriter.FALSE));
+		vbC.writeFuncTail(null, null);
+		
+		/* State member(s)
+		*/
+		getStateDcls();
+		if(iAllSts.length != 0)
+		{	for(int st= 0; st < iAllSts.length; st++)
+			{	IdlValStateDcl iStateDcl= iAllSts[st];
+				vbC.writeLine();
+				vbC.writeLine("'State member: " + iStateDcl.getUnEscName());
+				iStateDcl.writeVbStatePropFuncs(vbC,
+					/*forcePublic*/bSimpleValue, /*vbInterface*/null);
+			}
+		}
+
+		/* Implements direct base valuetypes
+		*/
+		if(idlValueTypes != null)
+		{	for(int i= 0; i < idlValueTypes.length; i++)
+			{	IdlValueType iValueType= idlValueTypes[i];
+				
+				/* State member(s)
+				*/
+				iValueType.getStateDcls();
+				if(iValueType.iAllSts.length != 0)
+				{	for(int st= 0; st < iValueType.iAllSts.length; st++)
+					{	IdlValStateDcl iStateDcl= iValueType.iAllSts[st];
+						vbC.writeLine();
+						vbC.writeLine("'State member: " + iStateDcl.getUnEscName());
+						iStateDcl.writeVbStatePropFuncs(vbC,
+							/*forcePublic*/bSimpleValue,
+							/*vbInterface*/iValueType.getVbName(true));
+					}
+				}
+			}
+		}
+
+		/* Implements [abstract] interfaces
+		*/
+		if(idlInterfaces != null)
+		{	for(int i= 0; i < idlInterfaces.length; i++)
+			{	IdlInterface iInterface= idlInterfaces[i];
+			
+				vbC.writeLine();
+				vbC.writeFuncThisObject(VbWriter.FRIEND,
+					iInterface.getVbName(false),
+					iInterface.getVbName(true));
+				
+				IdlAttribute[] iAllAttrs= iInterface.getAttributes();
+				for(int at= 0; at < iAllAttrs.length; at++)
+				{	IdlAttribute iAttr= iAllAttrs[at];
+					iAttr.writeVbValImpl(iInterface.getVbName(true), vbC);
+				}
+				IdlOperation[] iAllOps= iInterface.getOperations();
+				for(int op= 0; op < iAllOps.length; op++)
+				{	IdlOperation iOp= iAllOps[op];
+					iOp.writeVbValImpl(iInterface.getVbName(true), vbC);
+				}
+			}
+		}
+		
+		// Helper, insert, Any???
+		// Helper, extract, Any???
+		
+		for(IdlValInitOp iValInitOp= idlValInitOps; iValInitOp != null;
+			iValInitOp= (IdlValInitOp)iValInitOp.getNext())
+		{	iValInitOp.writeVbImplExample(null, vbC);
+		}
+		getAttributes();
+		for(int at= 0; at < iAllAttrs.length; at++)
+		{	IdlAttribute iAttr= iAllAttrs[at];
+			iAttr.writeVbImplExample(null, vbC);
+		}
+		getOperations();
+		for(int op= 0; op < iAllOps.length; op++)
+		{	IdlOperation iOp= iAllOps[op];
+			iOp.writeVbImplExample(null, vbC);
+		}
+		vbC.close();
+	}
+}

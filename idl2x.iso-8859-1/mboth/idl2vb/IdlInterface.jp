@@ -1,0 +1,289 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlContainer implements IdlType
+
+	#include "../idl2lang/IdlInterface.jp"
+
+	/**
+	 */
+	private String vbClsName;
+	
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return super.setVbName(sVbName);
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean withPrefix)
+	{	if(vbClsName == null)
+			vbClsName= super.getVbName(true);
+		return withPrefix? vbClsName: super.getVbName(false);
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.write(VbWriter.SET + " " + vbVariable + " = "
+			+ getVbModName() + "." + VbWriter.NARROW + "(");
+		out.writeLine(VbWriter.OIN + ".readAbstract(" + VbWriter.NOTHING + "))");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OOUT
+			+ ".writeAbstract(" + vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine("oOrb.createAbstractInterfaceTc(\"" + getTypeId()
+			+ "\", \"" + getUnEscName() + "\")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.OANY + ".getAbstract()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY
+			+ ".insertAbstract(" + vbVariable + ")");
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{
+		if(getFileIncludeLvl() > IDL2VB.iGenIncludeLvl)
+		{	if(MainOptions.iLogLvl >= 8)
+				System.out.println("D Interface " + getScopedName()
+					+ " is included only");
+			return;
+		}
+		// Only forward declaration?
+		if(!isDefined())
+		{	if(MainOptions.iLogLvl >= 4)
+				System.out.println("I Interface " + getScopedName()
+					+ " is only forward declared");
+			return;
+		}
+
+		/** Write contained IdlDefinitions
+		 */
+		super.writeVbFiles(opts);
+
+		// Write VB module
+		this.writeVbMod(opts.vbPath);
+		
+		// Write VB class
+		this.writeVbCls(opts.vbPath);
+
+		// Write VB class
+		if(opts.srvout)
+			this.writeVbImplCls(opts.vbPath);
+
+		for(IdlException def= idlExceptions; def != null;
+			def= (IdlException)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		/* Is done in IdlSpecification
+		for(IdlStruct def= idlStructs; def != null;
+			def= (IdlStruct)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		*/
+		/* Is done in IdlSpecification
+		for(IdlUnion def= idlUnions; def != null;
+			def= (IdlUnion)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		*/
+	}
+
+	/** Write VB module
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbMod(String vbPath) throws java.io.IOException
+	{
+		String sVbModName= getVbModName();
+		if(MainOptions.iLogLvl >= 4)
+			System.out.println("I Writing abstract interface "
+				+ getScopedName() + " to `" + sVbModName + ".bas'");
+
+		VbModWriter vbM= new VbModWriter(vbPath, sVbModName,
+			getFilePos().getFileName());
+
+		// First of all write constants, later it is not allowed.
+
+		// Write TypeId constant declaration
+		vbM.writeLine();
+		this.writeConstScopeTypeId(vbM,
+			IdlSpecification.INTERFACE + " " + IdlSpecification.ABSTRACT,
+			/* isPublic */ true);
+
+		/* (IdlContainer)
+		*/
+		this.writeVbModConsts(vbM);
+
+		/* (IdlContainer)
+		*/
+		this.writeVbModHelpers(vbM);
+
+		vbM.writeLine();
+		vbM.writeLine("'Helper");
+		vbM.writeAbsNarrow(true, getVbName(true));
+
+		vbM.writeLine();
+		vbM.writeLine("'Helper");
+		vbM.writeAbsNarrow(false, getVbName(true));
+
+		vbM.close();
+	}
+
+	/** Write VB class
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbCls(String vbPath) throws java.io.IOException
+	{
+		if(MainOptions.iLogLvl >= 4)
+			System.out.println("I Writing abstract interface "
+				+ getScopedName() + " to `" + getVbName(true) + ".cls'");
+		
+		VbClsWriter vbC= new VbClsWriter(vbPath, getVbName(true),
+			getFilePos().getFileName());
+		
+		// Implements cOrbAbstractBase, cOrbObject
+		vbC.writeLine();
+		vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+			+ VbWriter.CORBABSTRACTBASE);
+		vbC.writeLine(VbWriter.IMPLEMENTS + VbWriter.SP
+			+ VbWriter.CORBOBJECT);
+
+		// Write TypeId constant declaration
+		vbC.writeLine();
+		this.writeConstScopeTypeId(vbC, IdlSpecification.INTERFACE,
+			/* isPublic */ false);
+		vbC.writeVarLine(VbWriter.PRIVATE, VbWriter.OOBJREF,
+			VbWriter.CORBOBJREF);
+
+		// Implements cOrbAbstractBase
+		vbC.writeLine();
+		vbC.writeFuncThisObject(VbWriter.FRIEND,
+			"OrbAbstractBase", VbWriter.CORBABSTRACTBASE);
+
+		// cOrbAbstractBase_isObjRef()
+		vbC.writeAbstractBaseIsObjRef(true);
+
+		// Implements cOrbObject
+		vbC.writeLine();
+		vbC.writeFuncThisObject(VbWriter.FRIEND,
+			"OrbObject", VbWriter.CORBOBJECT);
+		
+		// cOrbObject_setObjRef()
+		vbC.writeObjectSetObjRef(isLocal());
+		// cOrbObject_getObjRef()
+		vbC.writeObjectGetObjRef();
+		// cOrbObject_getId()
+		vbC.writeObjectGetId();
+
+		// Helper, insert, Any???
+		// Helper, extract, Any???
+		
+		getAttributes();
+		for(int at= 0; at < iAllAttrs.length; at++)
+		{	IdlAttribute iAttr= iAllAttrs[at];
+			iAttr.writeVbProps(vbC);
+		}
+		getOperations();
+		for(int op= 0; op < iAllOps.length; op++)
+		{	IdlOperation iOp= iAllOps[op];
+			iOp.writeVbSubOrFunc(vbC);
+		}
+		vbC.close();
+	}
+
+	/** Write additional server skeleton examples
+	 *
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbImplCls(String vbPath) throws java.io.IOException
+	{
+		// No skeletons for abstract interfaces
+	}
+}

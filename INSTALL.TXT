@@ -1,0 +1,38 @@
+Installing VBOrb
+================
+
+To install VBOrb and to test VBOrb do the following
+---------------------------------------------------
+
+1. Extract all files of the VBOrb.zip distribution by using
+   e.g. WinZIP on Windows, unzip under Linux or Java jar tool.
+
+2. Open the orb/VBOrb.vbp project file.
+   a) Generate the VBOrb.dll file. (By that VB will also register
+      the VBOrb.dll on your system.)
+      Later if you distribute a VBOrb application you have to build
+      a setup.exe otherwise your application will not work.
+      (Or use the regsvr32 Windows utility to register the VBOrb.dll
+      on a foreign computer by yourself.)
+   b) Save and close the VBOrb project.
+
+3. For example test the DB client/server example application
+   a) Open the demos/db_query/DBQuery.vbp client project file.
+      - IMPORTANT: Check the project references.
+        Maybe delete unknown VBOrb reference. Close the reference box.
+        Then reopen reference box and add right project reference
+        to your VBOrb.dll.
+      - Generate the DBQuery.exe file.
+   b) Open the demos/db_server/DBServer.vbp project file.
+      - IMPORTANT: Check the project references.
+        Maybe delete unknown VBOrb reference. Close the reference box.
+        Then reopen reference box and add right project reference
+        to your VBOrb.dll.
+   c) Generate the DBServer.exe file.
+   d) Start the DBServer.exe and the DBQuery.exe
+   e) See how the DB client/server example works.
+
+
+If you would like to develop your own CORBA applications in VB
+you will need to install a Java Runtime Environment for the IDL2VB
+compiler.

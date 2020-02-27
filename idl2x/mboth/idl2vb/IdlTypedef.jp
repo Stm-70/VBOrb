@@ -1,0 +1,110 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlTypedef.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *  #pragma vbname <idldef> can change the name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return idlType.setVbName(sVbName);
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	return idlType.getVbName(bPrefix);
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return idlType.isVbSet();
+	}
+
+	/** (IdlType)
+	 *	Write VB code reading the value from an oIn stream
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		// array, see IdlDeclarator
+		idlType.writeVbRead(out, vbVariable);
+	}
+
+	/** (IdlType)
+	 *	Write VB code writing the value to an oOut stream
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		// array, see IdlDeclarator
+		idlType.writeVbWrite(out, vbVariable);
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		idlType.writeVbAssignTypeCode(out, vbVariable);
+		out.writeAssign(vbVariable, true);
+		out.writeLine("oOrb.createAliasTc(\"" + getTypeId()
+			+ "\", \"" + getUnEscName() + "\", "
+			+ vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		idlType.writeVbFromAny(out, vbVariable);
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		idlType.writeVbIntoAny(out, vbVariable);
+	}
+}

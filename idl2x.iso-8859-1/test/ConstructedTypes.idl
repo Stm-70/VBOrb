@@ -1,0 +1,95 @@
+#if defined OK
+
+typedef short short4[4];
+
+enum et1{ev0, ev1};
+struct strct1
+{	any av;
+	short4 sh4v;
+	enum et1{ev1, ev2} f;
+	union ut1 switch(enum et1 {ev_1, ev0, ev1, ev2})
+	{	case ev1: short shv;
+		default: long lnv;
+	}uv1;
+};
+
+module mod1
+{
+	enum et1{ev0, ev1};
+	struct strct1
+	{	any av;
+		short4 sh4v;
+		enum et1{ev1, ev2} f;
+		union ut1 switch(enum et1 {ev_1, ev0, ev1, ev2})
+		{	case ev1: short shv;
+			default: long lnv;
+		}uv1;
+	};
+};
+
+// Redefinition of structs via inheritance in IDL
+module Test
+{
+ interface I1
+ {
+  struct S1
+  {
+   short x, y;
+  };
+ };
+
+ interface I2 : I1
+ {
+  struct S1
+  {
+   I1::S1 s;
+  };
+ };
+};
+
+#endif // OK
+
+#if defined ERR001
+union ut1 switch(enum et1 {ev_1, ev0, ev1, ev2})
+{	case ev1: short shv;
+	default: long et1; // Error
+	// IDL identifier `et1' redefined after use
+}uv1;
+#endif
+
+#if defined ERR002
+module m1
+{
+	typedef sequence<m1> t1; // Scoped name of an IDL type expected
+};
+#endif
+
+#if defined ERR003
+
+module Test {
+  interface I1 {
+    struct S1 { // IDL2VB: Position of previous definition
+      short x, y;
+    };
+  };
+  interface I2 : I1 {
+    attribute S1 foo; // OmniOrb: ('S1' used here)
+    struct S1 { // IDL2VB: Redefinition of struct `S1'
+		// OmniOrb: Declaration of struct 'S1' clashes with use of identifier 'S1'
+      I1::S1 s;
+    };
+  };
+};
+
+#endif
+
+#if defined ERR004
+
+module alias
+{
+	interface I { };
+	typedef I J;		// I is not a data type it is an object type
+	interface K : J { };
+};
+
+#endif

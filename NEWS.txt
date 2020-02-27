@@ -1,0 +1,23 @@
+2020-02-27
+- moveed to Linux and github converted source to UTF-8
+stm
+
+2003-03-11
+??? - VBOrb Calling WSACleanup() is not allowed
+  if VBOrb is not the only one library
+  using sockets in your application.
+  by Ron Muck
+  Rejected. Problem does not exists if using oOrb.destroy()
+
+2003-02-13
+- VBOrb Visi5 workaround. Visi5 close ALL connections if
+  receiving a CloseConnection message.
+  Thanks to Andreas Roth
+
+2003-02-10
+- VBOrb BugFix: endless loop in bind method sometimes
+  Thanks to Andreas Mucha
+
+2002-12-18
+- IDL2VB option -P, for writing VB project files
+  Thanks to Ajay Mohindra

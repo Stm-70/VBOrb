@@ -1,0 +1,100 @@
+module obv
+{
+	module _custom
+#pragma vbname _custom Cs
+	{
+		custom valuetype valueExample
+		{
+			private long number_state;
+
+			public string name_state;
+
+			readonly attribute long number;
+
+			void print();
+		};
+
+		interface ValueExchange
+		{
+			void sendValueExample( in valueExample value );
+		};
+	};
+};
+
+module obv
+{
+	module support_abstract
+#pragma vbname support_abstract SpAbs
+	{
+		abstract interface AnAbstractInterface
+		{
+			void print();
+		};
+
+		interface Example : AnAbstractInterface
+		{ }; 
+
+		valuetype valueExample supports AnAbstractInterface
+		{
+			public string name_state;		
+		};
+
+		interface ValueExchange
+		{	
+			AnAbstractInterface getInterface( in boolean byValue );		
+		};
+	};
+};
+
+module obv
+{
+	module _valuetype
+#pragma vbname _valuetype ValType
+	{
+		valuetype Account
+		{
+			private string name;
+			public string address;
+			private float balance;
+
+			void debit( in float amount );
+			void credit( in float amount );
+
+			factory init( in string name, in string address, in float balance);
+		};
+
+		interface IBank
+		{
+			Account create_account( in string name, in string address, in float balance ) ;
+		};
+	};
+};
+
+module obv
+{
+	module support_interface
+#pragma vbname support_interface SpInf
+	{
+		interface Message
+		{
+			void print();
+		};
+
+		valuetype valueExample supports Message
+		{
+			public string name_state;
+
+			void printName();
+		};
+
+		interface ValueExchange
+		{
+			// Ask for a remote object
+			Message getValueSupportedInterface();
+
+			// Ask for a local object
+			valueExample getValueExample();
+
+		};
+	};
+};

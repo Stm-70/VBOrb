@@ -1,0 +1,222 @@
+#pragma prefix "omg.org"
+
+module CosNaming
+{
+    typedef string Istring;
+
+    struct NameComponent
+    {
+	Istring id;
+	Istring kind;
+    };
+};
+
+#pragma prefix "ooc.com"
+
+module CosNaming
+{
+    typedef string Ostring;
+};
+
+orbacusnaming.idl:16(8): Attempt to assign a different prefix to a forward-declared identifier
+orbacusnaming.idl:3(8): Position of the first identifier definition
+
+
+The file orb.idl contains the IDL definitions for the CORBA module. Except for
+CORBA::TypeCode, the file orb.idl must be included in IDL files that use names
+defined in the CORBA module. CORBA::TypeCode can be used in IDL files without
+having to include orb.idl.
+
+interface A {};
+#pragma ID A "IDL:A:1.1"
+#pragma ID A "IDL:X:1.1" // Compile-time error
+interface B {};
+#pragma ID B "IDL:BB:1.1"
+#pragma ID B "IDL:BB:1.1" // OK, same ID
+
+// A.idl
+#pragma prefix "A"
+interface A {};
+// B.idl
+#pragma prefix "B"
+module M {
+	#include "A.idl"
+};
+The repository ID for module M and interface A in this case are:
+IDL:B/M:1.0
+IDL:A/A:1.0
+Forward-declared constructs (interfaces, value types, structures, and unions) must have
+the same prefix in effect wherever they appear. Attempts to assign conflicting prefixes
+to a forward-declared construct result in a compile-time diagnostic. For example:
+
+#pragma prefix "A"
+interface A; // Forward decl.
+#pragma prefix "B"
+interface A; // Compile-time error
+#pragma prefix "C"
+interface A { // Compile-time error
+	void op();
+};
+
+
+
+TypedefDef: base interface for definitions of named types that are not interfaces or
+value types.
+
+
+
+#if defined OK
+
+interface A
+{
+};
+abstract interface AA
+{
+};
+interface B
+{
+};
+abstract interface AB
+{
+};
+
+// interface may inherit from interface: multiple
+interface C : A, B
+{
+};
+
+// interface may inherit from abstract interface: multiple
+interface D : AA, AB, A, B
+{
+};
+
+// abstract interface may inherit from abstract interface: multiple
+abstract interface AD : AA, AB
+{
+};
+
+// Test about a bug in version 0.96 of VBOrb
+// See more about scoping in CORBA specification
+module Common {
+
+    typedef double DDate;
+
+    interface Destroyable
+    {
+        void destroy();
+    };
+};
+
+module AAStatic
+{
+    typedef Common::DDate DDate;
+        
+    interface Base
+    {
+    };
+};
+
+module AAeg4 {
+
+    typedef Common::DDate DDate;
+    interface X : Common::Destroyable, AAStatic::Base
+    {
+        struct Curve
+        {
+            DDate refDate;
+        };
+    };
+
+};
+
+#endif // OK
+
+#if defined ERR001
+interface A
+{
+};
+// abstract interface may inherit from interface: no
+// An abstract interface may only inherit from other abstract interfaces
+abstract interface AC : A
+{
+};
+#endif
+
+#if defined ERR002
+abstract valuetype A
+{
+};
+// interface may inherit from abstract value: no
+// Scoped name of an IDL interface expected
+interface C : A
+{
+};
+#endif
+
+#if defined ERR003
+interface I{};
+abstract interface AI{};
+interface J{};
+// It is illegal to specify an interface as a direct base interface more than once
+interface K: I, AI, J, ::AI
+{
+};
+#endif
+
+#if defined ERR010
+interface I1
+// Position of the inherit attribute definition
+{	attribute long a1;
+};
+interface I2 : I1
+{
+};
+interface I3 : I2
+// Redefine attribute `a1' in a derived interface
+{	attribute string a1;
+};
+#endif
+
+#if defined ERR011
+interface I1
+// Position of the first attribute definition
+{	attribute long a1;
+};
+interface I2
+// Position of the second attribute definition
+{	attribute string a1;
+};
+// Inherit two attributes with the same name `a1'
+interface I3 : I1, I2
+{
+};
+#endif
+
+#if defined ERR012
+interface I1
+// Position of the inherit operation definition
+{	void a1();
+};
+interface I2 : I1
+{
+};
+interface I3 : I2
+// Redefine operation `a1' in a derived interface
+{	long a1();
+};
+#endif
+
+#if defined ERR013
+interface I1
+// Position of the second operation definition
+{	void a1();
+};
+interface I2
+// Position of the first operation definition
+{	long a1();
+};
+// Inherit two operations with the same name `a1'
+interface I3 : I2, I1
+{	
+};
+#endif

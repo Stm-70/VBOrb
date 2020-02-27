@@ -1,0 +1,5 @@
+*.log
+*.vbw
+*.dll
+*.lib
+*.exp

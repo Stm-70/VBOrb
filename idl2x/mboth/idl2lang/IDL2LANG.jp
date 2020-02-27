@@ -1,0 +1,172 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+import gnu.getopt.*;
+import java.io.IOException;
+import mboth.util.*;
+
+/**
+ * @author  Martin Both
+ */
+public class IDL2LANG
+{
+	/**
+	 */
+	public static final String pgmname= "IDL2LANG";
+	public static final String clsname= "mboth.idl2lang." + pgmname;
+	public static final String sVersion= VERSIONNO;
+	
+	/** 
+	 */
+	static public void main(String args[])
+	{
+		MainOptions.iLogLvl= 4;
+		MainOptions mainOpts= new MainOptions();
+
+		int chno;
+		LongOpt[] longopts= new LongOpt[2];
+		
+		longopts[0]= new LongOpt("version", LongOpt.NO_ARGUMENT, null, 'V');
+		longopts[1]= new LongOpt("help", LongOpt.NO_ARGUMENT, null, 'h');
+		
+		// The first character is a colon to return a ':' instead of a '?'
+		// when getopt() encounters an option with a missing required argument.
+		Getopt go= new Getopt(pgmname, args, ":L:AED:I:Vh", longopts);
+		while((chno= go.getopt()) != -1)
+		{	switch(chno)
+			{
+			case 'L':
+				MainOptions.iLogLvl= Integer.parseInt(go.getOptarg());
+				break;
+			case 'A':
+				IdlSpecification.bShowAnonymousTypes= true;
+				break;
+			case 'E':
+				mainOpts.pponly= true;
+				break;
+			case 'D':
+				try
+				{	TxtPreProcessor.addglDefine(go.getOptarg());
+				}catch(ChainException ex)
+				{	System.out.println(ex.toString());
+					System.exit(1);
+				}
+				break;
+			case 'I':
+				try
+				{	TxtPreProcessor.addIncludePaths(go.getOptarg());
+				}catch(ChainException ex)
+				{	System.out.println(ex.toString());
+					System.exit(1);
+				}
+				break;
+			case 'h':
+				printUsage();
+				break;
+			case 'V':
+				printVersion();
+				break;
+			case ':':
+			//	System.out.println("You need an argument for option " +
+			//		(char)go.getOptopt());
+				System.exit(1);
+			case '?':
+			//	System.out.println("The option '" + (char)go.getOptopt() + 
+			//		"' is not valid");
+				System.exit(1);
+			default:
+				System.out.println("The option '" + chno +
+					"' is not implemented");
+				System.exit(1);
+			}
+		}
+		
+		if(args.length == 0)
+		{	printRevision();
+			printUsage();
+			System.exit(1);
+		}
+		try
+		{	TxtPreProcessor.addglDefine("__" + pgmname + "__=" + sVersion);
+		}catch(ChainException ex)
+		{	System.out.println(ex.toString());
+			System.exit(1);
+		}
+
+		for(int i= go.getOptind(); i < args.length; i++)
+		{
+			try
+			{	if(mainOpts.pponly)
+				{
+					TxtTokenReader tr= new TxtPreProcessor(args[i]);
+					TxtToken tt= tr.readToken();
+					while(!(tt instanceof TxtTokEndOfFile))
+					{
+						System.out.print(tt.toString());
+						tt= tr.readToken();
+					}
+					if(tt.isAfterNewLine())
+						System.out.println();
+				}else
+				{
+					TxtPreProcessor tpp= new TxtPreProcessor(args[i]);
+					IdlSpecification idlSpec= new IdlSpecification(tpp);
+				}
+			}catch(ChainException ex)
+			{	System.out.println();
+				do
+				{	System.out.println(ex.toString());
+					ex= ex.getNextException();
+				}while(ex != null);
+				System.exit(1);
+				break;
+			}
+		}
+	}
+
+	/** 
+	 */
+	static public void printRevision()
+	{
+		System.out.println("Revision: " + pgmname + " v" + sVersion + ", "
+			+ REVISIONDATE + " " + __TIME__);
+	}
+
+	/** 
+	 */
+	static public void printVersion()
+	{
+		System.out.println(sVersion);
+	}
+	
+	/** 
+	 */
+	static public void printUsage()
+	{	System.out.println("usage: java " + clsname + " [-LAEDIVh] [file ...]");
+		System.out.println(" -L<level>      Log level (0, 1, 2, 4, 8)");
+		System.out.println(" -A             Show anonymous types");
+		System.out.println(" -E             Preprocess file(s) to standard output, no compile, no C output");
+		System.out.println(" -D<macro...>   Define a preprocessor macro");
+		System.out.println(" -I<path(s)>    Add search path(s) for include files");
+		System.out.println(" -V, --version  Display version number");
+		System.out.println(" -h, --help     Display usage message");
+	}
+}

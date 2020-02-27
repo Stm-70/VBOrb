@@ -1,0 +1,28 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#define JP_INIT
+	#include "../idl2lang/MainOptions.jp"
+
+	/**
+	 */
+	public boolean noidl= false;
+	
+	/** Write additional server skeleton examples
+	 */
+	public boolean srvout= false;
+	
+	/** Prefix
+	 */
+	public String vbPath;
+
+	/** 
+	 */
+	public void init()
+	{
+		vbPath= System.getProperty("user.dir");
+		if(vbPath == null)
+			vbPath= ".";
+	}
+}

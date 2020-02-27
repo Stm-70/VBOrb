@@ -1,0 +1,198 @@
+#if defined OK
+
+//native _exception;
+
+module HypotheticalObjectAdapter
+{	native Servant;
+	interface HOA
+	{	Object activate_object(in Servant x);
+	};
+};
+
+struct sf
+{	fixed<3,2> fx23_value;
+};
+
+//const _exception = 4;
+
+const long ca= 1;
+const unsigned long ul1= 2000000000*2 - 2000000000;
+const long lmin= -2147483648;
+const long lmax= 2147483647;
+const unsigned long ulmin= 0;
+const unsigned long ulmax= 4294967295;
+const long long llmin= -9223372036854775808;
+const long long llmax= 9223372036854775807;
+const unsigned long long ullmin= 0;
+const unsigned long long ullmax= 18446744073709551615;
+const unsigned long long ullmaxh= 0xFFFFFFFFFFFFFFFF;
+const unsigned long long ullmaxo= 01777777777777777777777;
+const short smin= -32768;
+const short smax= 32767;
+const unsigned short usmin= 0;
+const unsigned short usmax= 65535;
+
+const double cd01= 1.4;
+//const double cd02= .e1;
+//const double cd02= 14e4r;
+const double cd02= 14; // Converting integer into floating-point literal
+const double cd03= 14e-3;
+const double cd04= 14E+1;
+const double cd05= 14E2;
+const double cd06= 14.;
+const double cd07= .14;
+const double cd08= 14.E3;
+//const double cd09= 14.Ee3;
+const double cd10= -14.E3;
+const double cd11= +14.E3;
+
+//const fixed<2,3> cb2= 2.4d;
+typedef fixed<3,2> f23;
+const f23 cb2= 2.4d;
+const fixed cb= 2.4; // Converting floating-point into fixed-point literal
+const fixed fxp01= 1.4; // Converting floating-point into fixed-point literal
+//const fixed fxp02= 14;
+//const fixed fxp02= +14;
+const fixed fxp03= 14d;
+const fixed fxp04= 14D;
+const fixed fxp05= 14.2D;
+const fixed fxp06= 14.D;
+const fixed fxp07= .14d;
+//const fixed fxp09= 14.de3;
+const fixed fxp10= -14.d;
+const fixed fxp11= +14.d;
+
+const boolean B1 = FALSE;
+const string S1="H\0127H C&A H\xAH\xag";
+const string<5> S2="\xA" "B";
+const string S3="\rB\n";
+const string S4="\rB";
+const string S5="B\r\n";
+const string S6="B\rC";
+const string S7="";
+const string S8="\"";
+const string S9="A";
+const char C0 = 'X';
+const wchar L = L'X';
+const wchar C1 = L;
+const wchar C2 = '\xa'; // It's illegal to assign a non-wide char literal to a wide char
+const wstring WS1 = L"Hello\u002e";
+const wstring WS2= "ANSCHLU\337-BE";
+
+typedef wstring <2> tws2;
+typedef string <2> ts2;
+
+
+typedef fixed <1,1> a;
+#endif // OK
+
+#if defined ERR001s
+const string S1='AB'; // Error
+// Found empty character literal or more than one character: `AB'
+#endif
+
+#if defined ERR002s
+const string S2="\xA" 'B'; // Error
+// Found string characters not surrounded by double quotes
+#endif
+
+#if defined ERR003s
+const string S2='B'; // Error
+// Type mismatch. Constant value must match string type.
+#endif
+
+#if defined ERR001c
+const char C1='BD'; // Error
+// Found empty character literal or more than one character: `BD'
+#endif
+
+#if defined ERR002c
+const char C1="B"; // Error
+// Type mismatch. Constant value must match char type.
+#endif
+
+#if defined ERR001i
+const unsigned long ul2= 2000000000*3 - 2000000000;
+// ??? IDL2VB is not throwing an error here ???
+#endif
+
+#if defined ERR002i
+const long lminmin1= -2147483649;
+//  Long type constant value out of range.
+#endif
+
+#if defined ERR003i
+const long lmaxplus1= 2147483648;
+// Long type constant value out of range.
+#endif
+
+#if defined ERR004i
+const unsigned long ulminmin1= -1;
+// Unsigned long type constant value out of range.
+#endif
+
+#if defined ERR005i
+const unsigned long ulmaxplus1= 4294967296;
+// Unsigned long type constant value out of range.
+#endif
+
+#if defined ERR006i
+const long long llminmin1= -9223372036854775809;
+// ??? IDL2VB is not throwing an error here ???
+#endif
+
+#if defined ERR007i
+const long long llmaxplus1= 9223372036854775808;
+// ??? IDL2VB is not throwing an error here ???
+#endif
+
+#if defined ERR008i
+const unsigned long long ullminmin1= -1;
+// ??? IDL2VB is not throwing an error here ???
+#endif
+
+#if defined ERR009i
+const unsigned long long ullmaxplus1= 18446744073709551616;
+// Integer literal out of range
+#endif
+
+#if defined ERR010i
+const unsigned long long ullmaxplus1= 0x10000000000000000;
+// Integer literal out of range
+#endif
+
+#if defined ERR011i
+const unsigned long long ullmaxplus1= 02000000000000000000000;
+// Integer literal out of range
+#endif
+
+#if defined ERR012i
+const short sminmin1= -32769;
+// Short type constant value out of range.
+#endif
+
+#if defined ERR013i
+const short smaxplus1= 32768;
+// Short type constant value out of range.
+#endif
+
+#if defined ERR014i
+const unsigned short usminmin1= -1;
+// Unsigned short type constant value out of range.
+#endif
+
+#if defined ERR015i
+const unsigned short usmaxplus1= 65536;
+// Unsigned short type constant value out of range.
+#endif
+
+#if defined ERR001d
+const double cd12= 14e; // Invalid floating-point literal exponent `;'
+#endif
+
+#if defined ERR001f
+typedef fixed<2,3> f23;
+// Scale factor `3' of fixed data type must be less than or
+// equal to the total number of digits `2'
+#endif
+

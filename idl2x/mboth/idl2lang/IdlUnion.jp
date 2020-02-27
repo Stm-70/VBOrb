@@ -1,0 +1,339 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** 
+ *  @author  Martin Both
+ */
+public class IdlUnion extends IdlContainer implements IdlType
+{
+#endif
+
+	/** Not only forward declared?
+	 */
+	private TxtFilePos defFilePos;
+	private boolean bDefined;
+
+	/** Type of the discriminator
+	 */
+	private IdlType iSwitchTypeDef;
+	private IdlSwitchType origSwitchType;
+
+	/** "case" <const_exp> ":"
+	 */
+	private IdlConstValue eltLblVals[][];
+
+	/** <element_spec> ";"
+	 */
+	private IdlDeclarator eltCase[];
+	
+	/** "default" ":" <element_spec> ";"
+	 */
+	private IdlDeclarator eltDefault;
+	
+	/** Is a local type?
+	 */
+	private boolean bLocal;
+	private boolean bLocalChecked;
+
+	/** Read union head
+	 *
+	 *  @param	idlScope	
+	 *  @param	token		Last token
+	 *  @param	idlRd		IdlFile
+	 *	@return				iUnion (not null)
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public static IdlUnion readIdlHead(IdlScope idlScope, TxtToken token,
+		TxtTokenReader idlRd) throws TxtReadException
+	{
+		IdlUnion iUnion;
+		// <identifier>
+		IdlIdentifier iWord= IdlIdentifier.readIdlWord(idlScope, token);
+		IdlIdentifier identifier= idlScope.getIdentifier(iWord,
+			IdlScope.SL_DEFN | IdlScope.SL_INTR);
+		if(identifier != null)
+		{	if(!(identifier instanceof IdlUnion))
+			{	TxtReadException ex= new TxtReadException(iWord.getFilePos(),
+					"IDL identifier `" + identifier.getUnEscName()
+					+ "' redefined after use");
+				ex.setNextException(new TxtReadException(identifier.getFilePos(),
+					"Position of the first identifier definition"));
+				throw ex;
+			}
+			// forward declared or already declared
+			iUnion= (IdlUnion)identifier;
+			iUnion.checkPragmaPrefix(iWord);
+			#if defined IDL2VB
+			iUnion.checkPragmaVbPrefix(iWord);
+			#endif
+		}else
+		{	iUnion= new IdlUnion(iWord);
+			idlScope.putIdentifier(iUnion, true);
+			// The name of an interface, valuetype, struct, union, exception
+			// or a module may not be redefined within the immediate scope of
+			// the interface, valuetype, struct, union, exception, or the
+			// module. That's why we introduce the identifier now.
+			iUnion.putIdentifier(iUnion, false);
+		}
+		return iUnion;
+	}
+
+	/** 
+	 *  @param	identifier		Identifier
+	 */
+	private IdlUnion(IdlIdentifier identifier)
+	{
+		super(identifier);
+	}
+
+	/** Read union members definition if not ';'.
+	 *
+	 *  @param	idlRd		IdlFile
+	 *	@return				Unused token
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public TxtToken readIdl(TxtTokenReader idlRd) throws TxtReadException
+	{
+		TxtToken token= idlRd.readToken();
+		// <constr_forward_decl>
+		if(token instanceof TxtTokSepChar &&
+			((TxtTokSepChar)token).getChar() == ';')
+		{	return token;
+		}
+		if(bDefined)
+		{	TxtReadException ex= new TxtReadException(token.getFilePos(),
+				"Redefinition of struct `" + getUnEscName() + "'");
+			ex.setNextException(new TxtReadException(defFilePos,
+				"Position of previous definition"));
+			throw ex;
+		}
+		defFilePos= token.getFilePos();
+
+		// "switch" "(" <switch_type_spec> ")" "{" <switch_body> "}"		
+		// "switch"
+		String keyword= IdlSpecification.readKeyword(token, true);
+		if(keyword != IdlSpecification.SWITCH)
+		{	throw new TxtReadException(token.getFilePos(),
+				"\"switch\" of union declaration expected");
+		}
+		// "("
+		token= idlRd.readToken();
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '(')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\"(\" of union declaration expected");
+		}
+		getIdlSpecification().setPragmaScope(this);
+
+		// Read a <switch_type_spec>.
+		TxtTokenRef tRef= new TxtTokenRef();
+		iSwitchTypeDef= IdlBaseType.readSwitchType(this, tRef, idlRd);
+		origSwitchType= (IdlSwitchType)iSwitchTypeDef.getOriginIdlType();
+		// ")"
+		token= tRef.getOrReadToken(idlRd);
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != ')')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\")\" of union declaration expected");
+		}
+		// "{"
+		token= idlRd.readToken();
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '{')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\"{\" of union declaration expected");
+		}
+		// <switch_body> "}"
+		// <switch_body> ::= <case>+
+		ArrayList eltLblValsArr= new ArrayList();
+		ArrayList eltCaseArr= new ArrayList();
+		token= idlRd.readToken();
+		do
+		{	// <case> ::= <case_label>+ <element_spec> ";"
+			boolean isDefaultBranch= false;
+			IdlConstValue lblVals[]= null;
+			ArrayList lblValsArr= new ArrayList();
+			for(; ; )
+			{	// <case_label> ::= "case" <const_exp> ":" | "default" ":"
+				keyword= IdlSpecification.readKeyword(token, true);
+				if(keyword == IdlSpecification.CASE)
+				{	// "case" <const_exp>
+					IdlConstValue iConstValue= origSwitchType.readIdlConstValue(
+						this, tRef, idlRd);
+					token= tRef.getOrReadToken(idlRd);
+					lblValsArr.add(iConstValue);
+		// ??? doppelte Werte??? eigen Hashtable???
+				}else if(keyword == IdlSpecification.DEFAULT)
+				{	// "default"
+					if(isDefaultBranch || eltDefault != null)
+					{	throw new TxtReadException(token.getFilePos(),
+							"Multiple default labels in union `"
+							+ getUnEscName() + "'");
+					}
+					token= idlRd.readToken();
+					isDefaultBranch= true;
+				}else
+				{	break;
+				}
+				// ":"
+				if(!(token instanceof TxtTokSepChar) ||
+					((TxtTokSepChar)token).getChar() != ':')
+				{	throw new TxtReadException(token.getFilePos(),
+						"\":\" of union label declaration expected");
+				}
+				token= idlRd.readToken();
+			}
+			if(isDefaultBranch)
+			{
+			}else if(lblValsArr.size() > 0)
+			{	lblVals= new IdlConstValue[lblValsArr.size()];
+				lblValsArr.copyInto(lblVals);
+				// ??? doppelte Werte in allen lblVals[]???
+			}else
+			{	throw new TxtReadException(token.getFilePos(),
+					"\"case\" or \"default\" of union declaration expected");
+			}
+			// <element_spec> ";" ::=
+			// <type_spec>
+			tRef.ungetToken(token);
+			IdlType iType= IdlBaseType.readTypeSpec(this, tRef, idlRd);
+			if(!iType.isCompleteType())
+				throw IdlBaseType.buildIncompleteTypeEx(token.getFilePos(),
+					iType);
+			// if(iType.isAnonymousType()) later in IdlDeclarator.readIdlDcl()
+			// <declarator> ::=
+			//     <identifier> [ "[" <positive_int_const> "]" + ]
+			IdlDeclarator iElement= IdlDeclarator.readIdlDcl(iType,
+				this, tRef, idlRd);
+
+			// Add element case
+			if(isDefaultBranch)
+			{	eltDefault= iElement;
+			}else
+			{	eltLblValsArr.add(lblVals);
+				eltCaseArr.add(iElement);
+			}
+
+			// ";"
+			token= tRef.getOrReadToken(idlRd);
+			if(!(token instanceof TxtTokSepChar) ||
+				((TxtTokSepChar)token).getChar() != ';')
+			{	throw new TxtReadException(token.getFilePos(),
+					"\";\" of union case declaration expected");
+			}
+			// "}"
+			token= idlRd.readToken();
+		}while(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '}');
+
+		eltLblVals= new IdlConstValue[eltLblValsArr.size()][];
+		eltLblValsArr.copyInto(eltLblVals);
+		eltCase= new IdlDeclarator[eltCaseArr.size()];
+		eltCaseArr.copyInto(eltCase);
+
+		bDefined= true;
+
+		// Leaving the scope of this union
+		//
+		IdlSpecification iSpecification= getIdlSpecification();
+		iSpecification.setPragmaScope(getSurScope());
+
+		// Register the union as a new IDL definition
+		//
+		iSpecification.registerIdlDef(this);
+
+		return idlRd.readToken();
+	}
+
+	/** (IdlType)
+	 *  Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType()
+	{	return !bDefined && defFilePos != null;
+	}
+
+	/** (IdlType)
+	 *  Is a complete type (e.g. to be a member of structure or union)?
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType()
+	{	return bDefined;
+	}
+
+	/** (IdlType)
+	 *  Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType()
+	{	return isCompleteType()? null: this;
+	}
+
+	/** (IdlType)
+	 *  Is an anonymous type?
+	 *
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a local type?
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType()
+	{	if(!bLocalChecked)
+		{	bLocalChecked= true;
+			if(eltDefault != null && eltDefault.getIdlType().isLocalType())
+				bLocal= true;
+			else
+			{	for(int i= 0; i < eltCase.length; i++)
+				{	if(eltCase[i].getIdlType().isLocalType())
+					{	bLocal= true;
+						break;
+					}
+				}
+			}
+		}
+		return bLocal;
+	}
+
+	/** (IdlType)
+	 *  Get the origin type of a typedef if not an array declarator.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType()
+	{	return this;
+	}
+
+#if defined JP_TAIL
+}
+#endif

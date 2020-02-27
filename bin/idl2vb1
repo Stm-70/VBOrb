@@ -1,0 +1,15 @@
+#!/usr/bin/ksh
+
+IDL2VB_LIB=$(dirname $0)/IDL2VB.jar
+
+# Ensure that file exists
+if [ ! -f ${IDL2VB_LIB} ] ; then
+	print "File '${IDL2VB_LIB}' not found"
+	print "Please edit IDL2VB_LIB assignment inside this script"
+	exit 2
+fi
+
+# call JDK11 interpreter with appropriate options
+
+export CLASSPATH=${IDL2VB_LIB}
+java mboth.idl2vb.IDL2VB $*

@@ -1,0 +1,9 @@
+// Common Object Request Broker Architecture (CORBA), v2.6 December 2001
+//
+
+#if !defined(ORB_IDL)
+#define ORB_IDL
+
+#include <CORBA.idl>
+
+#endif // ORB_IDL

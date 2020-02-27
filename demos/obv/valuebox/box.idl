@@ -1,0 +1,20 @@
+module obv
+{
+	module valuebox
+	{
+		valuetype longBox long;
+
+		valuetype longSeqBox sequence<long>;
+		
+		interface IValueExchange
+		{	
+			void sendLongBox( in longBox box );
+
+			void sendLongSeqBox( in longSeqBox box );
+			
+			struct test
+			{	ValueBase aaa;
+			};
+		};
+	};
+};

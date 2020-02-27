@@ -1,0 +1,32 @@
+interface A;
+
+interface A
+{
+};
+
+interface A;
+
+local interface B
+{};
+abstract interface C;
+local interface D;
+//abstract local interface D;
+
+#if defined MODIFIER
+abstract interface AA;
+#endif
+
+#if defined REDEFINE
+local interface AA;
+
+local interface AA
+{
+};
+
+local interface AA;
+
+local interface AA
+{
+};
+
+#endif

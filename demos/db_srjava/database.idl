@@ -1,0 +1,133 @@
+/* 
+   Copyright (c) 2000 Martin.Both
+*/
+
+module DB // Version 1.00
+{
+	struct Message
+	{	long sqlcode;
+		string <5> sqlstate;
+		string <255> sqlmessage;
+	};
+
+	typedef Message Warning, Error;
+	typedef sequence <Warning> Warnings;
+	typedef sequence <Error> Errors;
+	
+	exception ErrMsgsEx
+	{	Errors errs;
+	};
+	
+	enum DataType
+	{	TypeNull, TypeString,
+		TypeShort, TypeInteger, TypeDouble, TypeDecimal,
+		TypeTime, TypeDate, TypeDateTime,
+		TypeText, TypeBinary
+	};
+	
+	union ColumnData switch(DataType)
+	{	case TypeString:
+			string stringValue;
+		case TypeShort:
+			short shortValue;
+		case TypeInteger:
+			long integerValue;
+		case TypeDouble:
+			double doubleValue;
+		case TypeText:
+			string textValue;
+		case TypeBinary:
+			sequence <octet> binaryValue;
+	};
+	
+	typedef sequence <ColumnData> DataRow;
+	typedef sequence <DataRow> DataRows;
+
+	struct ColumnDescriptor
+	{	string name;		// Column identifier (maybe equal to label)
+		DataType type;
+		short sqltype;
+		short length;		// Length of the data type in bytes
+		short scale;		// Scale for fixed-point decimal values or money
+		short precision;	// Precision for decimal or money
+		boolean nullable;
+	};
+
+	typedef sequence <ColumnDescriptor> DescriptorRow;
+	
+	// Cursor
+	interface Cursor
+	{
+		// Open the declared Cursor
+		void open(in DataRow using, out Warnings warns) raises(ErrMsgsEx);
+
+		// Fetch one row
+		long fetch(in long func, out DataRow row, out Warnings warns)
+			raises(ErrMsgsEx);
+
+		// Fetch a set of rows
+		long fetchSet(in long rowcnt, out DataRows rows,
+			out Warnings warns) raises(ErrMsgsEx);
+
+		// Opposite of open()
+		void close(out Warnings warns) raises(ErrMsgsEx);
+
+		// Opposite of Statement.declareCursor()
+		// After calling free Cursor doesn't work anymore.
+		void free(out Warnings warns) raises(ErrMsgsEx);
+	};
+
+	// Statement
+	interface Statement
+	{
+		// Describe the prepared Statement
+		// Returning type of statement, 0 is SELECT
+		long describe(out DescriptorRow cols, out Warnings warns)
+			raises(ErrMsgsEx);
+		
+		// Returning row counter
+		long execute(in DataRow using, out DataRow row,
+			out Warnings warns) raises(ErrMsgsEx);
+		
+		Cursor declareCursor(in boolean hold, out Warnings warns)
+			raises(ErrMsgsEx);
+
+		// Opposite of Session.prepareStatement()
+		// After calling free Statement doesn't work anymore.
+		void free(out Warnings warns) raises(ErrMsgsEx);
+	};
+
+	// Session
+	interface Session
+	{
+		// Open the Session
+		void open(out Warnings warns) raises(ErrMsgsEx);
+		
+		// Returning row counter
+		long executeStatement(in string stmstr, out Warnings warns)
+			raises(ErrMsgsEx);
+		Statement prepareStatement(in string stmstr, out Warnings warns)
+			raises(ErrMsgsEx);
+		
+		void commit(out Warnings warns) raises(ErrMsgsEx);
+		void rollback(out Warnings warns) raises(ErrMsgsEx);
+
+		void close(out Warnings warns) raises(ErrMsgsEx);
+
+		// After calling destroy Session doesn't work anymore.
+		void destroy(out Warnings warns) raises(ErrMsgsEx);
+	};
+
+	// Manager to create sessions (Session factory)
+	interface Manager
+	{
+		// Session factory returns a new closed session
+		Session getSession(in string url, in string user,
+			in string password, out Warnings warns) raises(ErrMsgsEx);
+
+		// Shutdown the CORBA server process
+		// After calling shutdowm Manager doesn't work anymore.
+		void shutdownServer(in string user, in string password)
+			raises(ErrMsgsEx);
+	};
+};

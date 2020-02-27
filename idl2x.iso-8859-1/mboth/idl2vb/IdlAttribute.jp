@@ -1,0 +1,257 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD // extends IdlIdentifier implements IdlDefinition
+
+	#include "../idl2lang/IdlAttribute.jp"
+
+	/** VB name (without general prefix) or null if unset
+	 */
+	private String sVbName;
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *  #pragma vbname <idldef> can change the name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		if(this.sVbName != null)
+			return this.sVbName;
+		this.sVbName= sVbName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	if(sVbName == null)
+		{	// Append names until the highest scope (next IdlContainer) is reached
+			StringBuffer sBuf= new StringBuffer(getUnEscName());
+			for(IdlScope iScope= getSurScope(); iScope != null;
+				iScope= iScope.getSurScope())
+			{	if(iScope instanceof IdlContainer)
+					break;
+				sBuf.insert(0, iScope.getUnEscName());
+			}
+			sVbName= IdlOperation.convertOpOrAttr2VB(sBuf.toString());
+			if(VbWriter.hashResWord(sVbName) != null)
+			{	sVbName= sVbName + "Prop";
+			}
+		}
+		if(bPrefix)
+		{	// checkMappingOfIdlDefs needs a unique name
+			for(IdlScope iScope= getSurScope(); iScope != null;
+				iScope= iScope.getSurScope())
+			{	if(iScope instanceof IdlContainer)
+					return ((IdlContainer)iScope).getVbModName() + "."
+						+ sVbName;
+			}
+		}
+		return sVbName;
+	}
+
+	/** VB property
+	 *  @return				propName= attrName[Prop]
+	 */
+	public String getVbPropertyName()
+	{
+		return getVbName(false);
+	}
+
+	/**
+	 *  @param	out		
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbProps(VbClsWriter out) throws java.io.IOException
+	{
+		String attrName= getUnEscName();
+		String vbName= getVbPropertyName();
+		
+		out.writeLine();
+		out.write("'");
+		if(readonly)
+			out.write(IdlSpecification.READONLY+ " ");
+		out.writeLine(IdlSpecification.ATTRIBUTE + " " + attrName);
+		out.writeAttributeGet(attrName, vbName, idlType);
+		if(readonly)
+			return;
+
+		out.writeLine();
+		out.writeAttributeLetOrSet(attrName, vbName, idlType);
+	}
+
+	/** Write additional server skeleton caller
+	 *  @param	out		
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbImplExec(VbClsWriter out) throws IOException
+	{
+		String attrName= getUnEscName();
+		String vbName= getVbPropertyName();
+		
+		out.writeLine(VbWriter.CASE + " \"_get_" + attrName + "\"");
+		out.indent(true);
+		out.writeDimLine(vbName, idlType.getVbName(true));
+		if(idlType.isVbSet())
+			out.write(VbWriter.SET + VbWriter.SP);
+		out.writeLine(vbName + " = " + "oImpl_" + "." + vbName + "()");
+		idlType.writeVbWrite(out, vbName);
+		out.indent(false);
+		if(readonly)
+			return;
+
+		out.writeLine(VbWriter.CASE + " \"_set_" + attrName + "\"");
+		out.indent(true);
+		out.writeDimLine(attrName + "New", idlType.getVbName(true));
+		idlType.writeVbRead(out, attrName + "New");
+		if(idlType.isVbSet())
+			out.write(VbWriter.SET + VbWriter.SP);
+		out.writeLine("oImpl_" + "." + vbName + "() = " + attrName + "New");
+		out.indent(false);
+	}
+
+	/** Write additional server delegate function
+	 *							vbInterface == null is nonsense here???
+	 *  @param	vbInterface		Interface name or null if public
+	 *  @param	out		
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbImplTie(String vbInterface, VbClsWriter out)
+		throws IOException
+	{
+		String attrName= getUnEscName();
+		String vbName= getVbPropertyName();
+		
+		out.writeLine();
+		out.write("'");
+		if(readonly)
+			out.write(IdlSpecification.READONLY+ " ");
+		out.writeLine(IdlSpecification.ATTRIBUTE + " " + attrName);
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			VbWriter.GET, idlType, true);
+		out.writeLine("'Please write your own code here if using as servant example");
+		out.writeIf("oDelegate Is Nothing"); out.writeThen();
+		out.writeLine(VbWriter.CALL + VbWriter.SP + IDL2VB.getVbOrbDLL()
+			+ ".raiseNOIMPLEMENT(0, " + IDL2VB.getVbOrbDLL() + ".CompletedNO)");
+		out.writeElse();
+		if(idlType.isVbSet())
+		{	out.write(VbWriter.SET); out.write(VbWriter.SP);
+		}
+		out.writeLine(vbInterface + "_" + vbName + " = oDelegate." + vbName);
+		out.writeEndIf();
+		out.writeAttributeTail(vbInterface, vbName, VbWriter.GET, idlType, true);
+		if(readonly)
+			return;
+
+		out.writeLine();
+		String vbKind= idlType.isVbSet()? VbWriter.SET: VbWriter.LET;
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			vbKind, idlType, true);
+		out.writeLine("'Please write your own code here if using as servant example");
+		out.writeIf("oDelegate Is Nothing"); out.writeThen();
+		out.writeLine(VbWriter.CALL + VbWriter.SP + IDL2VB.getVbOrbDLL()
+			+ ".raiseNOIMPLEMENT(0, " + IDL2VB.getVbOrbDLL() + ".CompletedNO)");
+		out.writeElse();
+		if(idlType.isVbSet())
+		{	out.write(VbWriter.SET); out.write(VbWriter.SP);
+		}
+		out.writeLine("oDelegate." + vbName + " = " + attrName + "New");
+		out.writeEndIf();
+		out.writeAttributeTail(vbInterface, vbName, vbKind, idlType, true);
+	}
+
+	/** Write additional implement examples or write valuetype example
+	 *  @param	vbInterface		Interface name or null if public
+	 *							vbInterface != null is nonsense here???
+	 *  @param	out		
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbImplExample(String vbInterface, VbClsWriter out)
+		throws IOException
+	{
+		String attrName= getUnEscName();
+		String vbName= getVbPropertyName();
+		
+		out.writeLine();
+		out.write("'");
+		if(readonly)
+			out.write(IdlSpecification.READONLY+ " ");
+		out.writeLine(IdlSpecification.ATTRIBUTE + " " + attrName);
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			VbWriter.GET, idlType, true);
+		//do something
+		out.writeLine("'Please write your code here after copying this file");
+		out.writeLine("'instead of throwing an exception");
+		out.writeLine(VbWriter.CALL + VbWriter.SP + IDL2VB.getVbOrbDLL()
+			+ ".raiseNOIMPLEMENT(0, " + IDL2VB.getVbOrbDLL() + ".CompletedNO)");
+		out.writeAttributeTail(vbInterface, vbName, VbWriter.GET, idlType, true);
+		if(readonly)
+			return;
+
+		out.writeLine();
+		String vbKind= idlType.isVbSet()? VbWriter.SET: VbWriter.LET;
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			vbKind, idlType, true);
+		//do something
+		out.writeLine("'Please write your code here after copying this file");
+		out.writeLine("'instead of throwing an exception");
+		out.writeLine(VbWriter.CALL + VbWriter.SP + IDL2VB.getVbOrbDLL()
+			+ ".raiseNOIMPLEMENT(0, " + IDL2VB.getVbOrbDLL() + ".CompletedNO)");
+		out.writeAttributeTail(vbInterface, vbName, vbKind, idlType, true);
+	}
+
+	/** Write implementation of interfaces for valuetypes
+	 *  @param	vbInterface		Interface name or null if public
+	 *							vbInterface == null is nonsense here???
+	 *  @param	out		
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbValImpl(String vbInterface, VbClsWriter out)
+		throws IOException
+	{
+		String attrName= getUnEscName();
+		String vbName= getVbPropertyName();
+		
+		out.writeLine();
+		out.write("'");
+		if(readonly)
+			out.write(IdlSpecification.READONLY+ " ");
+		out.writeLine(IdlSpecification.ATTRIBUTE + " " + attrName);
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			VbWriter.GET, idlType, false);
+		if(idlType.isVbSet())
+		{	out.write(VbWriter.SET); out.write(VbWriter.SP);
+		}
+		if(vbInterface == null)
+			out.writeLine(vbName + " = " + vbName);
+		else
+			out.writeLine(vbInterface + "_" + vbName + " = " + vbName);
+		out.writeAttributeTail(vbInterface, vbName, VbWriter.GET, idlType, false);
+		if(readonly)
+			return;
+
+		out.writeLine();
+		String vbKind= idlType.isVbSet()? VbWriter.SET: VbWriter.LET;
+		out.writeAttributeHead(vbInterface, attrName, vbName,
+			vbKind, idlType, false);
+		if(idlType.isVbSet())
+		{	out.write(VbWriter.SET); out.write(VbWriter.SP);
+		}
+		out.writeLine(vbName + " = " + attrName + "New");
+		out.writeAttributeTail(vbInterface, vbName, vbKind, idlType, false);
+	}
+}

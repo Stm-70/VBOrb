@@ -1,0 +1,264 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** <sequence_type>
+ *
+ *  @author  Martin Both
+ */
+public class IdlSequence extends IdlIdentifier implements IdlType
+{
+#endif
+
+	/** Is a complete type?
+	 */
+	private boolean bDefined;
+
+	/** <simple_type_spec>
+	 */
+	private IdlType idlType;
+	
+	/** 0 = unbounded
+	 */
+	private int max;
+	
+	/** The first definition of this kind of sequence (ignoring boundaries)
+	 */
+	IdlSequence prevSeq;
+	
+	/** Is this sequence also a Java-RMI/IDL array definition?
+	 */
+	IdlValueBox boxedJavaArray;
+
+	/** Read a <sequence_type>
+	 *
+	 *  @param	surScope	Surrounding scope, IdlSpecification or null
+	 *  @param	keyword		Token of keyword is equal tRef.getOrReadToken(idlRd)
+	 *  @param	tRef		Maybe next token, unread() is not allowed
+	 *  @param	idlRd		IdlFile
+	 *  @param	test		return type/null/exception or type/exception
+	 *	@return				iSequence (not null if !test)
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public static IdlSequence readIdlSequence(IdlScope surScope, String keyword,
+		TxtTokenRef tRef, TxtTokenReader idlRd, boolean test)
+		throws TxtReadException
+	{
+		TxtToken token= tRef.getOrReadToken(idlRd);
+		IdlSequence iSequence;
+		if(keyword == IdlSpecification.SEQUENCE)
+		{	iSequence= new IdlSequence(surScope, token.getFilePos());
+			iSequence.readIdl(idlRd);
+		}else
+		{	tRef.ungetToken(token);
+			if(test)
+				return null;
+			throw new TxtReadException(token.getFilePos(),
+				"<sequence_type> expected");
+		}
+		#if defined JP_IDL2VB
+		if(iSequence.prevSeq != null)
+		{	// See also: IdlIdentifier.checkPragmaVbPrefixes()
+			if(!iSequence.sVbClsPrefix.equals(iSequence.prevSeq.sVbClsPrefix))
+			{	TxtReadException ex= new TxtReadException(iSequence.getFilePos(),
+					"Attempt to assign a different pragma vbclsprefix ("
+					+ iSequence.sVbClsPrefix + " != "
+					+ iSequence.prevSeq.sVbClsPrefix + ") to "
+					+ "an already declared sequence");
+				ex.setNextException(new TxtReadException(
+					iSequence.prevSeq.getFilePos(),
+					"Position of the first sequence definition"));
+				throw ex;
+			}
+		}
+		#endif
+		return iSequence;
+	}
+
+	/**
+	 *  @param	surScope	Surrounding scope, IdlSpecification or null
+	 *  @param	filePos		File position of the identifier
+	 */
+	private IdlSequence(IdlScope surScope, TxtFilePos filePos)
+	{	super(surScope, IdlSpecification.SEQUENCE, filePos);
+		#if defined JP_IDL2VB
+		// See also: IdlIdentifier.sVbClsPrefix
+		IdlSpecification idlSpec= surScope.getIdlSpecification();
+		this.sVbClsPrefix= idlSpec.getCurVbClsPrefix();
+		#endif
+
+	}
+
+	/** Read sequence
+	 *
+	 *  @param	idlRd		IdlFile
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	private void readIdl(TxtTokenReader idlRd) throws TxtReadException
+	{			
+		// "<" <simple_type_spec> "," <positive_int_const> ">"
+		// | "<" <simple_type_spec> ">"
+		
+		// "<"
+		TxtToken token= idlRd.readToken();
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '<')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\"<\" of sequence declaration expected");
+		}
+		// <simple_type_spec>
+		TxtTokenRef tRef= new TxtTokenRef();
+		token= tRef.getOrReadToken(idlRd);
+		tRef.ungetToken(token);
+		idlType= IdlBaseType.readSimpleType(getSurScope(), tRef, idlRd);
+		if(idlType.isAnonymousType())
+			IdlSpecification.showAnonymousType(token.getFilePos(), idlType);
+		
+		// ","
+		token= tRef.getOrReadToken(idlRd);
+		if(token instanceof TxtTokSepChar &&
+			((TxtTokSepChar)token).getChar() == ',')
+		{
+			// <positive_int_const>
+			IdlConstType iConstType= IdlPositiveInt.readIdlPositiveInt(
+				getSurScope(), token.getFilePos());
+			IdlConstValue iConstValue= iConstType.readIdlConstValue(
+				getSurScope(), tRef, idlRd);
+			max= (int)iConstValue.getLong().longValue();
+			token= tRef.getOrReadToken(idlRd);
+		}
+		// ">"
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '>')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\">\" of sequence declaration expected");
+		}
+		bDefined= true;
+
+		// Register only the first definition of this kind of sequence
+		// as a new IDL definition but returning this sequence
+		// because mapping is ignoring the boundaries.
+		//
+		IdlSpecification idlSpec= getIdlSpecification();
+		Object obj= idlSpec.getPrevIdlDef(this);
+		if(obj == null)
+		{	idlSpec.registerIdlDef(this);
+		}else
+		{	this.prevSeq= (IdlSequence)obj;
+		}
+	}
+
+	/**
+	 */
+	public void setJavaArray(IdlValueBox boxedJavaArray)
+	{
+		this.boxedJavaArray= boxedJavaArray;
+		if(prevSeq != null)
+			prevSeq.setJavaArray(boxedJavaArray);
+	}
+	
+	/** (IdlType:IdlDefinition)
+	 *  Get an IDL name to identify the definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @return		<sequence ::T>
+	 */
+	public String getIdlName()
+	{	StringBuffer sBuf;
+		sBuf= new StringBuffer(IdlSpecification.SEQUENCE);
+		sBuf.append('<');
+#if defined JP_IDL2VB
+		/*  getIdlName() is different here because the VB mapping does not
+		 *  support vbnames of typedefs. Otherwise you cannot assign
+		 *  sequences of different type names and you have to use #pragma
+		 *  very often.
+		 */
+		sBuf.append(idlType.getOriginIdlType().getIdlName());
+#else
+		sBuf.append(idlType.getIdlName());
+#endif
+		if(sBuf.charAt(sBuf.length() - 1) == '>')
+			sBuf.append(' ');
+		sBuf.append('>');
+		return sBuf.toString();
+	}
+	
+	/** (IdlType)
+	 *  Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType()
+	{	return !bDefined;
+	}
+
+	/** (IdlType)
+	 *  Is a complete type (e.g. to be a member of structure or union)?
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType()
+	{	return bDefined &&
+			(idlType.isCompleteType() || idlType.isUnderDefinitionType());
+	}
+
+	/** (IdlType)
+	 *  Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType()
+	{	return bDefined? idlType.getIncompleteType(): this;
+	}
+
+	/** (IdlType)
+	 *  Is an anonymous type?
+	 *
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *  Is a local type?
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType()
+	{	return idlType.isLocalType();
+	}
+
+	/** (IdlType)
+	 *  Get the origin type of a typedef if not an array declarator.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType()
+	{	return this;
+	}
+
+#if defined JP_TAIL
+}
+#endif

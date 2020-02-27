@@ -1,0 +1,127 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** "native" <simple_declarator>
+ *
+ *  @author  Martin Both
+ */
+public class IdlNative extends IdlIdentifier implements IdlType
+{
+#endif
+
+	/** Read <simple_declarator> of "native" data type
+	 *
+	 *  @param	surScope	Surrounding scope, IdlSpecification or null
+	 *  @param	token		Last token
+	 *	@return				iNative (not null)
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public static IdlNative readIdlNative(IdlScope surScope, TxtToken token)
+		throws TxtReadException
+	{
+		// <simple_declarator>
+		IdlIdentifier iWord= IdlIdentifier.readNewIdlWord(surScope, token);
+		IdlNative iNative= new IdlNative(iWord);
+		surScope.putIdentifier(iNative, true);
+		// Register this native type as a new IDL definition
+		//
+		surScope.getIdlSpecification().registerIdlDef(iNative);
+		return iNative;
+	}
+
+	/** 
+	 *  @param	identifier		Identifier
+	 */
+	protected IdlNative(IdlIdentifier iWord)
+	{
+		super(iWord);
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get an IDL name to identify the definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @return		Scoped IDL name
+	 */
+	public String getIdlName()
+	{	return getScopedName().toString();
+	}
+	
+	/** (IdlType)
+	 *  Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a complete type (e.g. to be a member of structure or union)?
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *  Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType()
+	{	return null;
+	}
+
+	/** (IdlType)
+	 *  Is an anonymous type?
+	 *
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a local type?
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType()
+	{	return false;	// It depends on the conrete native type
+	}
+
+	/** (IdlType)
+	 *  Get the origin type of a typedef if not an array declarator.
+	 *  If an array declarator then return an array type.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType()
+	{	return this;
+	}
+#if defined JP_TAIL
+}
+#endif

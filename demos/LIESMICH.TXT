@@ -1,0 +1,46 @@
+VB-Beispiele und VB-Test-Anwendungen
+====================================
+
+
+Verzeichnisstruktur
+-------------------
+
+vb/demos/               Dieses Verzeichnis
+
+  LIESMICH.TXT          Diese Datei
+
+  README.TXT            Diese Datei, in englischer Übersetzung
+
+  grid/                 Sehr einfaches Beispiel, Client
+
+  grid_server/          Server für das sehr einfache Beispiel
+
+  hello/                Ein Beispiel bei dem Client und Server einen
+                        CORBA Naming Service verwenden.
+
+  db_query/             Beispiel für einen SQL-Client, der über eine IIOP-
+                        Schnittstelle auf eine SQL-Datenbank zugreift.
+
+  db_server/            Simulation einer SQL-Datenbank, die über eine
+                        IIOP-Schnittstelle verfügt, passend für den SQL-
+                        Client.
+
+  db_srjava/            Beispiel für einen Server, der für den SQL-Client
+                        den Zugriff auf eine echte SQL-Datenbank via JDBC
+                        ermöglicht. Der Server ist in Java mit dem JacORB
+                        geschrieben.
+
+  callback/             Beispiel für eine Anwendung wo sich ein oder mehrere
+                        Clients bei einem Server registrieren und der Server
+                        dann Funktionen des Clients aufruft, die wiederum
+                        Funktionen im Server aufrufen.
+                        Dieses Beipiel zeigt was mit CORBA (sogar ohne echte
+                        Threads) möglich ist.
+
+  obv/                  "Object by value"-Beispiele vom OpenORB
+
+  rmi_iiop/             Beispiel wie eine VB-Anwendung mit einem Java-JDK-1.4-
+                        RMI/IIOP-Server kommunizieren kann. EJBs (Enterprise
+                        Java Beans) verwenden die selbe Technik.
+
+  ejb/                  Tipps für den Zugriff auf EJBs (Enterprise Java Beans).

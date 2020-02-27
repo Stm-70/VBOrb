@@ -1,0 +1,52 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlSpecification.jp"
+
+	/** (IdlDefinition)
+	 *  Get the C Name to identify the definition
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix
+	 *  					is used to build complex names.
+	 *	@return		C Name
+	 */
+	public String getCName(boolean withPrefix)
+	{	if(this.sCName == null)
+		{	this.sCName= "";
+			//???if(CWriter.hashResWord(sVbName) != null)
+		}
+		return this.sCName;
+	}
+
+	/**
+	 *  @param	cPath		Prefix
+	 *  @param	srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeCFiles(MainOptions opts) throws java.io.IOException
+	{
+		if(MainOptions.iLogLvl >= 2)
+			System.out.println("W Output directory is `" + opts.out_path + "'");
+		
+		/* Write contained IdlDefinitions
+		*/
+		super.writeCFiles(opts);
+		
+		/* Write anonymous defined (IdlDefinition)iDefs
+		*/
+		for(Enumeration iDefEnum= idlDefs.elements();
+			iDefEnum.hasMoreElements(); )
+		{
+			IdlDefinition iDef= (IdlDefinition)iDefEnum.nextElement();
+			if(iDef instanceof IdlSequence)
+			{	IdlSequence iSeq= (IdlSequence)iDef;
+				iSeq.writeC(opts.out_path);//???
+			}else if(iDef instanceof IdlArray)
+			{	IdlArray iArr= (IdlArray)iDef;
+				//???iArr.writeCFiles(opts);
+			}
+		}
+	}
+}

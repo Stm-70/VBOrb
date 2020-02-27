@@ -1,0 +1,28 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#define JP_INIT
+	#include "../idl2lang/MainOptions.jp"
+
+	/**
+	 */
+	public boolean no_out= false;
+	
+	/** Write additional server skeleton examples
+	 */
+	public boolean srv_out= false;
+	
+	/** Prefix
+	 */
+	public String out_path;
+
+	/** 
+	 */
+	public void init()
+	{
+		out_path= System.getProperty("user.dir");
+		if(out_path == null)
+			out_path= ".";
+	}
+}

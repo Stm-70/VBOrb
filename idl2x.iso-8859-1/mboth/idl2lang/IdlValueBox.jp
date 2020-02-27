@@ -1,0 +1,221 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** 
+ *
+ *  @author  Martin Both
+ */
+public class IdlValueBox extends IdlIdentifier implements IdlType
+{
+#endif
+
+	/** <type_spec> excepting valuetype
+	 */
+	private IdlType idlType;
+	
+	/** Is a (boxedRMI sequence) Java-RMI/IDL array definition?
+	 *	Or is a (boxedIDL) Java-RMI/IDL IDL entity type definition?
+	 */
+	private static final int NoJavaVBoxType= -1;
+	private static final int JavaArrayType= 1;
+	private static final int JavaIDLEntityType= 2;
+	private int iJavaVBoxType;
+
+	/** Read declarator of value_box <value_box_dcl>
+	 *
+	 *  @param	surContainer
+	 *  @param	iWord		new <identifier>
+	 *  @param	tRef		Next token
+	 *  @param	idlRd		IdlFile
+	 *	@return				iValueBox (never null)
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public static IdlValueBox readIdlValueBox(IdlContainer surContainer,
+		IdlIdentifier iWord, TxtTokenRef tRef, TxtTokenReader idlRd)
+		throws TxtReadException
+	{
+		TxtToken token= tRef.getOrReadToken(idlRd);
+		tRef.ungetToken(token);
+		IdlType iType= IdlBaseType.readTypeSpec(surContainer, tRef, idlRd);
+		// Anonymous type is allowed here
+		IdlType oType= iType.getOriginIdlType();
+		if(oType instanceof IdlValueType || oType instanceof IdlValueBox)
+		{	TxtReadException ex= new TxtReadException(token.getFilePos(),
+				"Any IDL type may be used to declare a value box"
+				+ " except for a valuetype");
+			ex.setNextException(new TxtReadException(iType.getFilePos(),
+				"Position of the given type definition"));
+			throw ex;
+		}
+		IdlValueBox iValueBox= new IdlValueBox(iWord, iType);
+		surContainer.putIdentifier(iValueBox, true);
+
+		// (Maybe tell sequence that it is a boxed JavaArray)
+		// (Maybe tell IDL entity that it is a boxed IDL entity)
+		if(iValueBox.getJavaVBoxType() == NoJavaVBoxType)
+		{	// Register this value_box as a new IDL definition
+			//
+			surContainer.getIdlSpecification().registerIdlDef(iValueBox);
+		}
+		return iValueBox;
+	}
+
+	/** 
+	 *  @param	iWord		Identifier
+	 *  @param	iType	
+	 */
+	protected IdlValueBox(IdlIdentifier iWord, IdlType iType)
+	{
+		super(iWord);
+		this.idlType= iType;
+	}
+
+	/** Is a Java-RMI/IDL value box definition?
+	 *
+	 *	@return		JavaVBoxType
+	 */
+	public int getJavaVBoxType()
+	{	if(iJavaVBoxType != 0)
+			return iJavaVBoxType;
+		String sIdlName= this.getIdlName();
+		if(sIdlName.startsWith("::org::omg::boxed"))
+		{	if(sIdlName.startsWith("::org::omg::boxedRMI::"))
+			{	if(idlType.getOriginIdlType() instanceof IdlSequence)
+				{	// Tell sequence that it is a boxed JavaArray
+					((IdlSequence)idlType.getOriginIdlType()).setJavaArray(this);
+					iJavaVBoxType= JavaArrayType;
+				}else
+				{	iJavaVBoxType= NoJavaVBoxType;
+				}
+			}else if(sIdlName.startsWith("::org::omg::boxedIDL::"))
+			{	if(idlType.getOriginIdlType() instanceof IdlStruct)
+				{	// Tell entity that it is a boxed Java IDL entity
+					((IdlStruct)idlType.getOriginIdlType()).setIDLEntityBox(this);
+				}
+				// valuetype _Any any;
+				// #pragma ID _Any "RMI:org.omg.CORBA.Any:0000000000000000"
+				// valuetype _TypeCode ::CORBA::TypeCode;
+				// #pragma ID _TypeCode "RMI:org.omg.CORBA.TypeCode:0000000000000000"
+				iJavaVBoxType= JavaIDLEntityType;
+			}else
+			{	iJavaVBoxType= NoJavaVBoxType;
+			}
+		}else
+		{	iJavaVBoxType= NoJavaVBoxType;
+		}
+		return iJavaVBoxType;
+	}
+
+	/** Is a Java-RMI/IDL definition?
+	 *
+	 *	@return		isJavaVBoxType
+	 */
+	public boolean isJavaVBoxType()
+	{	return this.getJavaVBoxType() != NoJavaVBoxType;
+	}
+
+	/** Is a Java-RMI/IDL array definition?
+	 *
+	 *	@return		isBoxedRMIArray
+	 */
+	public boolean isBoxedRMIArray()
+	{	return this.getJavaVBoxType() == JavaArrayType;
+	}
+
+	/** Is a Java-RMI/IDL IDL entity type definition?
+	 *
+	 *	@return		isBoxedIDLEntity
+	 */
+	public boolean isBoxedIDLEntity()
+	{	return this.getJavaVBoxType() == JavaIDLEntityType;
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get an IDL name to identify the definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @return		<sequence ::T>
+	 */
+	public String getIdlName()
+	{	return getScopedName().toString();
+	}
+	
+	/** (IdlType)
+	 *  Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a complete type (e.g. to be a member of structure or union)?
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType()
+	{	return idlType.isCompleteType() || idlType.isUnderDefinitionType();
+	}
+
+	/** (IdlType)
+	 *  Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType()
+	{	return idlType.getIncompleteType();
+	}
+
+	/** (IdlType)
+	 *  Is an anonymous type?
+	 *
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a local type?
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType()
+	{	return idlType.isLocalType();
+	}
+
+	/** (IdlType)
+	 *  Get the origin type of a typedef if not an array declarator.
+	 *  If an array declarator then return an array type.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType()
+	{	return this;
+	}
+
+#if defined JP_TAIL
+}
+#endif

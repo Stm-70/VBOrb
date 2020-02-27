@@ -1,0 +1,314 @@
+#if defined OK
+
+// Initializers defined in a valuetype are not inherited by derived
+// valuetypes, and hence the names of the initializers are free to
+// be reused in a derived valuetype. See valuetype.idl
+
+typedef string SOut;
+
+module M
+{
+	module Inner1
+	{	typedef string S1;
+	};
+	module Inner2
+	{	typedef string inner1; // OK
+		typedef ::SOut jj; // ::SOut is not introduced
+		typedef jj Sout;
+	};
+};
+
+module Meg2 {
+    typedef long ArgType;  // line l6
+    typedef ArgType AType; // line l1
+    interface B {
+        typedef string ArgType; // line l3
+        ArgType opb(in AType i); // line l2
+    };
+};
+module Neg2 {
+    typedef char ArgType; // line l4
+    interface Y : Meg2::B {
+        void opy(in ArgType i); // line l5, definition of l3 is used
+		// if l3 removed then l5 use definition of l4 (not l2)
+    };
+};
+module Meg3 {
+    typedef long ArgType;  // line l6
+    typedef ArgType AType; // line l1
+    interface B {
+        ArgType opb(in AType i); // line l2
+    };
+};
+module Neg3 {
+    typedef char ArgType; // line l4
+    interface Y : Meg3::B {
+        void opy(in ArgType i); // line l5, definition of l3 is used
+		// if l3 removed then l5 use definition of l4 (not l2)
+    };
+};
+
+module M {
+    typedef long ArgType;
+    const long I = 10;
+    typedef short Y;
+    interface A {
+        struct S {
+            ArgType x[I]; // x is a long[10], ArgType and I are used
+            long y; // Note: a new y is defined; the existing Y is not used
+        };
+        typedef short Y; // OK because Y has not been used yet!
+    };
+};
+
+// Source Java 1.3
+interface A
+{	struct S { short ss; };
+};
+interface B:A
+{	typedef S new_S;
+	exception ex {S f1;}; // S is inherited
+};
+
+
+module XXX5
+{	interface TypeCode;
+};
+module Meg5 {
+typedef Object myObjRef; // keyword Object
+typedef XXX5::TypeCode TypeCode;// OK
+};
+module XXX5
+{	interface TypeCode{};
+};
+
+interface Aeg6 {
+	exception E {
+		long L;
+	};
+	void f() raises(E);
+};
+interface Beg6: Aeg6 {
+	void g() raises(E);
+};
+
+typedef long ArgTypeEg9;
+module Meg9 {
+	struct S {
+		ArgTypeEg9 x; // x is a long.3
+	};
+	typedef string ArgTypeEg9; // OK!
+	struct T {
+		ArgTypeEg9 y; // Ugly but OK, y is a string
+	};
+};
+
+#endif // OK
+
+#if defined ERR001
+module M
+{
+	module Inner1
+	{	typedef string S1;
+	};
+	module Inner2
+	{	typedef Inner1::S1 S2; // Inner1 introduced
+		typedef string inner1; // Error, "Inner1" != "inner1"
+		typedef string S1; // OK
+	};
+};
+#endif
+
+#if defined ERR002
+module M
+{
+	module Inner1
+	{	typedef string S1;
+	};
+	module Inner2
+	{	typedef Inner1::S1 S2; // Inner1 introduced
+		typedef string Inner1; // Error, redefine
+		typedef string S1; // OK
+	};
+};
+#endif
+
+#if defined ERR003
+typedef string SOut;
+
+module M
+{
+	module Inner1
+	{	typedef string S1;
+	};
+	module Inner2
+	{	typedef string inner1; // OK
+		typedef SOut jj; // SOut is introduced
+		typedef jj SOut;	// Error
+	};
+};
+#endif
+
+#if defined ERR004
+// Source Java 1.3
+interface t
+{	const long foo = 1;
+	attribute long foo; // `foo' redefined
+};
+#endif
+
+#if defined ERR005
+module M {
+    typedef long ArgType;
+    const long I = 10;
+    typedef short Y;
+    interface A {
+        struct S {
+            ArgType x[I]; // x is a long[10], ArgType and I are used
+            long y; // Note: a new y is defined; the existing Y is not used
+        };
+        typedef string ArgType; // Error: ArgType redefined after use
+    };
+};
+#endif
+
+#if defined ERR006
+module M {
+    typedef long ArgType;
+    const long I = 10;
+    typedef short Y;
+    interface A {
+        struct S {
+            ArgType x[I]; // x is a long[10], ArgType and I are used
+            long y; // Note: a new y is defined; the existing Y is not used
+        };
+        enum I {I1, I2}; // Error: I redefined after use
+    };
+};
+#endif
+
+#if defined ERR007
+module M {
+	typedef CORBA::Object myObjRef; // Error: keyword Object scoped.3
+};
+#endif
+
+#if defined ERR008
+module XXX
+{	interface TypeCode;
+};
+module M {
+	typedef TypeCode myTypeCode; // Error: TypeCode undefined
+};
+#endif
+
+#if defined ERR009
+module M {
+	typedef long Long; // Error: Long clashes with keyword long
+};
+#endif
+
+#if defined ERR010
+module M {
+	typedef long TheThing;
+	interface I {
+		typedef long MyLong;
+		myLong op1( // Error: inconsistent capitalization
+		);
+	};
+};
+#endif
+
+#if defined ERR011
+module M {
+	typedef long TheThing;
+	interface I {
+		typedef long MyLong;
+		MyLong op1(
+			in TheThing thething; // Error: TheThing clashes with thething
+		);
+	};
+};
+
+#endif
+
+#if defined ERR012
+interface A {
+	typedef string<128> string_t;
+};
+interface B {
+	typedef string<256> string_t;
+};
+interface C: A, B {
+attribute string_t Title; // Error: Ambiguous
+attribute A::string_t Name; // OK
+attribute B::string_t City; // OK
+};
+#endif
+
+#if defined ERR013
+module M {
+	typedef short M; // Error: M is the name of the module
+	// in the scope of which the typedef is.
+};
+#endif
+
+#if defined ERR014
+module M {
+	interface I {
+		void I (in short j); // Error: i clashes with the interface name I
+	};
+};
+#endif
+
+#if defined ERR015
+interface A {
+	enum E { E1, E2, E3 }; // line 1
+	enum BadE { E3, E4, E5 }; // Error: E3 is already introduced.3
+		// into the A scope in line 1 above
+};
+#endif
+
+#if defined ERR016
+interface A {
+	enum E { E1, E2, E3 }; // line 1
+};
+interface C {
+	enum AnotherE { E1, E2, E3 };
+};
+interface D : C, A {
+	union U switch ( E ) {
+		case A::E1 : boolean b;// OK.
+		case E2 : long l; // Error: E2 is ambiguous (notwithstanding
+	// the switch type specification!!)
+	};
+};
+#endif
+
+#if defined ERR017
+module M {
+	typedef long ArgType;
+	interface A {
+		typedef string ArgType; // OK, redefined in nested scope
+		struct S {
+			ArgType x; // x is a string
+		};
+	};
+	typedef double ArgType; // Error: redefinition in same scope
+};
+#endif
+
+#if defined ERR020
+
+module m_a
+{	enum enum_a { value_1, value_2 };
+};
+
+module m_b
+{	typedef m_a::enum_a enum_b;
+};
+
+const m_b::enum_b bconst= m_b::value_2;
+	// Definition of identifier `value_2' not found
+
+#endif

@@ -1,0 +1,175 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlEnum.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return sVbName;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	return VbWriter.LONG; // ENUM is LONG in VB
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String readFunc= "readUlong";
+		out.writeLine(vbVariable + " = " + VbWriter.OIN + "."
+			+ readFunc + "()");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String writeFunc= "writeUlong";
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OOUT + "."
+			+ writeFunc + "(" + vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(this.getIdlContainer().getVbModName() + "."
+			+ getUnEscName() + "_" + VbWriter.TYPECODE + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, false);
+		out.writeLine(VbWriter.OANY + "." + "enumGetAsUlong" + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ "enumSetAsUlong" + "(" + vbVariable + ")");
+	}
+
+	/**
+	 *  @param	out		VbModWriter
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbModConsts(VbModWriter out) throws java.io.IOException
+	{
+		out.writeLine();
+		out.writeLine("'Enum " + getUnEscName());
+		
+		for(IdlConst def= idlEnumerators; def != null;
+			def= (IdlConst)def.getNext())
+		{	def.writeVbModDefs(out);
+		}
+	}
+	
+	/**
+	 *  @param	vbM		VbModWriter
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbModHelpers(VbModWriter vbM) throws java.io.IOException
+	{
+		String sVbFuncName= this.getUnEscName() + "_" + VbWriter.TYPECODE;
+		
+		vbM.writeLine();
+		vbM.writeLine("'Enum " + this.getUnEscName() + ", Helper");
+		vbM.writeFuncHead(VbWriter.PUBLIC, sVbFuncName);
+		vbM.writeFuncBody(VbWriter.CORBTYPECODE, true);
+		vbM.writeDimLine(VbWriter.STYPEID, VbWriter.STRING);
+		vbM.writeAssign(VbWriter.STYPEID, /*isVbSet*/false);
+		vbM.writeLine("\"" + getTypeId() + "\"");
+		vbM.writeDimLine("oOrb", "cOrbImpl");
+		vbM.writeAssign("oOrb", /*isVbSet*/true);
+		vbM.writeLine(IDL2VB.getVbOrbDLL() + ".defaultOrb()");
+		vbM.writeLine("'Describe enum members");
+		vbM.writeDimLine("oMemSeq", "c_StringSeq");
+		vbM.writeAssign("oMemSeq", true);
+		vbM.writeLine(VbWriter.NEW + VbWriter.SP + "c_StringSeq");
+		vbM.writeAssign("oMemSeq.Length", false);
+		int iLen= 0;
+		for(IdlConst def= idlEnumerators; def != null;
+			def= (IdlConst)def.getNext())
+		{	iLen++;
+		}
+		vbM.writeLine(Integer.toString(iLen));
+		iLen= 0;
+		for(IdlConst def= idlEnumerators; def != null;
+			def= (IdlConst)def.getNext())
+		{	String sItem= "oMemSeq.Item(" + Integer.toString(iLen) + ")";
+			vbM.writeAssign(sItem, false);
+			vbM.writeLine("\"" + def.getUnEscName() + "\"");
+			iLen++;
+		}
+		vbM.writeAssign(sVbFuncName, true);
+		vbM.writeLine("oOrb.createEnumTc(" + VbWriter.STYPEID
+			+ ", \"" + getUnEscName() + "\", "
+			+ "oMemSeq" + ")");
+		vbM.writeLine(VbWriter.EXIT + VbWriter.SP + VbWriter.FUNCTION);
+		vbM.writeLabelLine(VbWriter.ERRHANDLER);
+		vbM.writeErrReraiseLine(sVbFuncName);
+		vbM.writeFuncTail(null, null);
+	}
+}

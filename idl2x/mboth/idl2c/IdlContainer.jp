@@ -1,0 +1,70 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlContainer.jp"
+
+	/** C name (without general prefix) or null if unset
+	 */
+	protected String sCName;
+	
+	/** (IdlDefinition)
+	 *  Set the C Name
+	 *
+	 *	@param	CName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== CName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setCName(String CName)
+	{	if(this.sCName != null)
+			return this.sCName;
+		this.sCName= CName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the C Name to identify the definition
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix
+	 *  					is used to build complex names.
+	 *	@return		C Name
+	 */
+	public String getCName(boolean withPrefix)
+	{	if(this.sCName == null)
+		{	this.sCName= this.getIdlContainer().getCName(false);
+			if(this.sCName.length() == 0)
+				this.sCName= this.getUnEscName();
+			else
+				this.sCName += "_" + getUnEscName();
+			//???if(CWriter.hashResWord(sVbName) != null)
+		}
+		return this.sCName;
+	}
+
+	/**
+	 *  @param	opts.out_path	Prefix
+	 *  @param	opts.srv_out	Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+/*???	public void writeCFiles(MainOptions opts) throws java.io.IOException
+	{	
+		// idlTypedefs
+		for(IdlStruct def= idlStructs; def != null;
+			def= (IdlStruct)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		for(IdlUnion def= idlUnions; def != null;
+			def= (IdlUnion)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+		// idlEnums
+		// idlConsts
+		for(IdlException def= idlExceptions; def != null;
+			def= (IdlException)def.getNext())
+		{	def.writeVbFiles(opts);
+		}
+	}
+*/
+}

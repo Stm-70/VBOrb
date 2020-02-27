@@ -1,0 +1,68 @@
+/*
+   multiply inherting the same operation name, which is generally illegal
+   but allowed in the case of "diamond" inheritance.
+*/
+
+#if defined OK
+
+interface A
+{
+	typedef double DDate;
+	
+	void make_it_so();
+};
+
+interface B: A{};
+
+interface C: A{};
+
+interface D: B, C
+{
+	typedef short DDate;
+	DDate ddatetest();
+};
+
+
+module foo  {
+  module bar {
+    interface baz {
+      const string version = "";
+    };
+  };
+};
+
+//#include <foo.idl>
+module foo {
+  module qux {
+    interface baz: bar :: baz {
+      const string version = "e";
+    };
+  };
+};
+
+#endif // OK
+
+#if defined ERR001
+
+interface A
+{
+	typedef double DDate;
+	
+	void make_it_so();
+};
+
+interface B: A
+{
+	short make_it_so(in long times); // Error: redifinition of make_it_so
+};
+
+interface C: A
+{
+};
+
+interface D: B, C
+{
+	DDate ddatetest();
+};
+
+#endif

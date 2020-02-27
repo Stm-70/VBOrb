@@ -1,0 +1,29 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlType.jp"
+
+	/**
+	 *  @return				Assign by SET or LET?
+	 */
+//	public boolean isVbSet();
+//???
+	/**
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+//	public void writeVbRead(VbClsWriter out, String vbVariable)
+//		 throws java.io.IOException;
+//???
+	/**
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+//	public void writeVbWrite(VbClsWriter out, String vbVariable)
+//		 throws java.io.IOException;
+}

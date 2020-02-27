@@ -1,0 +1,49 @@
+// grid.idl
+// IDL defintion of a 2-D grid:
+
+// This is an example used by a Java ORB called JacOrb
+//
+module grid 
+{
+	typedef short array[4], array2[5][4];
+	
+    interface MyServer
+    {
+		const string TestStringConst = "\"Hallo\"";
+		const long TestLongConst = 7;
+		
+		attribute array test1;
+		attribute array2 test2;
+		
+		readonly attribute short height;  // height of the grid
+		readonly attribute short width;   // width of the grid
+
+		// set the element [n,m] of the grid, to value:
+		void set(in short n, in short m, in long value);
+
+		// return element [n,m] of the grid:
+		long get(in short n, in short m);
+
+		exception MyException
+		{
+			string why;
+		};
+
+		short opWithException() raises( MyException );
+
+		oneway void shutdownServer();
+    };
+};
+
+// Any test suite from ORBit 0.5.0
+//
+struct TestAnyStruct 
+{
+	string<20> string_value;
+	long long_value;
+};
+
+interface TestAny
+{
+	any print(in any what);
+};

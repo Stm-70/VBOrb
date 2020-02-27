@@ -1,0 +1,61 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** All stuff that has an equivalent for a specific language
+ *  Implemented by IDL containers and all IDL types.
+ *
+ *  @author  Martin Both
+ */
+public interface IdlDefinition
+{
+#endif
+
+	/** Get the filename and the start position of the definition
+	 *
+	 *  @return		Filename and position
+	 */
+	public TxtFilePos getFilePos();
+
+	/** Get the file include level of the definition.
+	 *
+	 *  @return		0 = defined in main file
+	 */
+	public int getFileIncludeLvl();
+
+	/** Get the short definition name (without scope and leading `_')
+	 *
+	 *  @return		Short definition name
+	 */
+	public String getUnEscName();
+
+	/** Get an IDL name to identify the IDL definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @return		e.g. "<sequence ::T>"
+	 */
+	public String getIdlName();
+
+#if defined JP_TAIL
+}
+#endif

@@ -1,0 +1,267 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import mboth.util.*;
+
+/** Array
+ *
+ *  @author  Martin Both
+ */
+public class IdlArray implements IdlType
+{
+#endif
+
+	/** File position of the "["
+	 */
+	private TxtFilePos filePos;
+
+	/** File include level
+	 */
+	private int iFileIncludeLvl;
+
+	/** <type_spec>
+	 */
+	private IdlType idlType;
+	
+	/** <fixed_array_size>
+	 */
+	private int arrSize;
+	
+	/** The first definition of this kind of Array (including size)
+	 */
+	IdlArray prevArr;
+
+	/** Read an Array type definition if "[]" exists or return iType
+	 *
+	 *  @param	iType		<type_spec>
+	 *  @param	surScope	
+	 *  @param	tRef		Next token
+	 *  @param	idlRd		IdlFile
+	 *	@return				iArray or iType if only a simple declarator
+	 *
+	 *	@exception	TxtReadException	With fromFilePos
+	 */
+	public static IdlType readIdlType(IdlType iType, IdlScope surScope,
+		TxtTokenRef tRef, TxtTokenReader idlRd) throws TxtReadException
+	{	
+		// <fixed_array_size>*
+		// <fixed_array_size> ::= "[" <positive_int_const> "]"
+		TxtToken token= tRef.getOrReadToken(idlRd);
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != '[')
+		{
+			tRef.ungetToken(token);
+			return iType;
+		}
+		if(iType.isAnonymousType())
+			IdlSpecification.showAnonymousType(token.getFilePos(), iType);
+
+		// <positive_int_const>
+		IdlConstType iConstType= IdlPositiveInt.readIdlPositiveInt(
+			surScope, token.getFilePos());
+		IdlConstValue iConstValue= iConstType.readIdlConstValue(
+			surScope, tRef, idlRd);
+		
+		// "]"
+		token= tRef.getOrReadToken(idlRd);
+		if(!(token instanceof TxtTokSepChar) ||
+			((TxtTokSepChar)token).getChar() != ']')
+		{	throw new TxtReadException(token.getFilePos(),
+				"\"]\" of array declaration expected");
+		}
+
+		IdlArray iArray= new IdlArray(iConstType.getFilePos(),
+			iConstType.getFileIncludeLvl());
+		#if defined JP_IDL2VB
+		// See also: IdlIdentifier.sVbClsPrefix
+		IdlSpecification idlSpec= surScope.getIdlSpecification();
+		iArray.sVbClsPrefix= idlSpec.getCurVbClsPrefix();
+		#endif
+		iArray.idlType= IdlArray.readIdlType(iType, surScope, tRef, idlRd);
+		iArray.arrSize= (int)iConstValue.getLong().longValue();
+
+		// Register only the first definition of this kind of Array
+		// as a new IDL definition.
+		//
+		#if !defined JP_IDL2VB
+		IdlSpecification idlSpec= surScope.getIdlSpecification();
+		#endif
+		Object obj= idlSpec.getPrevIdlDef(iArray);
+		if(obj == null)
+		{	// new array definition
+			idlSpec.registerIdlDef(iArray);
+		}else
+		{	iArray.prevArr= (IdlArray)obj;
+		}
+		#if defined JP_IDL2VB
+		if(iArray.prevArr != null)
+		{	// See also: IdlIdentifier.checkPragmaVbPrefixes()
+			if(!iArray.sVbClsPrefix.equals(iArray.prevArr.sVbClsPrefix))
+			{	TxtReadException ex= new TxtReadException(iArray.getFilePos(),
+					"Attempt to assign a different pragma vbclsprefix ("
+					+ iArray.sVbClsPrefix + " != "
+					+ iArray.prevArr.sVbClsPrefix + ") to "
+					+ "an already declared array");
+				ex.setNextException(new TxtReadException(
+					iArray.prevArr.getFilePos(),
+					"Position of the first array definition"));
+				throw ex;
+			}
+		}
+		#endif
+		return iArray;
+	}
+
+	/**
+	 *  @param	filePos		File position of the identifier
+	 */
+	private IdlArray(TxtFilePos filePos, int iFileIncludeLvl)
+	{	this.filePos= filePos;
+		this.iFileIncludeLvl= iFileIncludeLvl;
+	}
+
+	/** Get an IDL name to identify the definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @param		uppName
+	 *  @return		<Array ::T>
+	 */
+	private String getIdlName(String uppName)
+	{	String iName= uppName + "[" + arrSize + "]";
+		if(idlType instanceof IdlArray)
+		{	IdlArray subArray= (IdlArray)idlType;
+			return subArray.getIdlName(iName);
+		}
+#if defined JP_IDL2VB
+		/*  getIdlName() is different herre because the VB mapping does not
+		 *  support vbnames of typedefs. Otherwise you cannot assign
+		 *  arrays of different type names and you have to use #pragma
+		 *  very often.
+		 */
+		return idlType.getOriginIdlType().getIdlName() + iName;
+#else
+		return idlType.getIdlName() + iName;
+#endif
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get the filename and the start position of the definition
+	 *
+	 *  @return		Filename and position
+	 */
+	public TxtFilePos getFilePos()
+	{	return filePos;
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get the file include level of the definition.
+	 *
+	 *  @return		0 = defined in main file
+	 */
+	public int getFileIncludeLvl()
+	{
+		return iFileIncludeLvl;
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get the short definition name (without scope and leading `_')
+	 *  This name is used by some messages.
+	 *
+	 *  @return		Short definition name
+	 */
+	public String getUnEscName()
+	{	StringBuffer sBuf= new StringBuffer();
+		if(idlType != null)
+		{	sBuf.append(idlType.getUnEscName());
+		}
+		sBuf.append('[');
+		sBuf.append(arrSize);
+		sBuf.append(']');
+		return sBuf.toString();
+	}
+
+	/** (IdlType:IdlDefinition)
+	 *  Get an IDL name to identify the definition uniquely
+	 *  for a specific language mapping
+	 *
+	 *  @return		<Array ::T>
+	 */
+	public String getIdlName()
+	{	return getIdlName(" ");
+	}
+	
+	/** (IdlType)
+	 *  Is a (structure or union) type currently under definition?
+	 *
+	 *	@return		isUnderDefinitionType
+	 */
+	public boolean isUnderDefinitionType()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *  Is a complete type (e.g. to be a member of structure or union)?
+	 *
+	 *	@return		isCompleteType
+	 */
+	public boolean isCompleteType()
+	{	return idlType.isCompleteType();
+	}
+
+	/** (IdlType)
+	 *  Get the incomplete type (e.g. member of a sequence).
+	 *
+	 *	@return		Incomplete type or null
+	 */
+	public IdlType getIncompleteType()
+	{	return idlType.getIncompleteType();
+	}
+
+	/** (IdlType)
+	 *  Is an anonymous type?
+	 *
+	 *	@return		isAnonymousType
+	 */
+	public boolean isAnonymousType()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *  Is a local type?
+	 *	@return		isLocalType
+	 */
+	public boolean isLocalType()
+	{	return idlType.isLocalType();
+	}
+
+	/** (IdlType)
+	 *  Get the origin type of a typedef if not an array declarator.
+	 *
+	 *	@return		iType
+	 */
+	public IdlType getOriginIdlType()
+	{	return this;
+	}
+
+#if defined JP_TAIL
+}
+#endif

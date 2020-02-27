@@ -1,0 +1,110 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlAny.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *  Get the Visual Basic Name to identify the type
+	 *
+	 *	@bPrefix	With final prefix?
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	return bPrefix? VbWriter.CORBANY: "Any";
+	}
+
+	/**
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return true;
+	}
+
+	/**
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.OIN + ".readAny()");
+		//out.writeLine(VbWriter.NEW + " " + getVbName(true));
+		//out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+		//	+ VbWriter.INITBYREAD + "(" + VbWriter.OIN + ")");
+	}
+
+	/**
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OOUT
+			+ ".writeAny(" + vbVariable + ")");
+		//out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+		//	+ VbWriter.WRITEME + "(" + VbWriter.OOUT + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		// mCB.tk_any = 11
+		out.writeLine("oOrb.createPrimitiveTc(11) 'VBOrb.TCAny");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.OANY + ".getAny()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY
+			+ ".insertAny(" + vbVariable + ")");
+	}
+}

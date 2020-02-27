@@ -1,0 +1,85 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlSpecification.jp"
+
+	
+	/** Global VB name mappings
+	 */
+	private Hashtable vbNameMap= new Hashtable();
+	private Hashtable vbNamePos= new Hashtable();
+
+	/**
+	 *
+	 *  @exception	TxtReadException
+	 */
+	public void checkMappingOfIdlDefs() throws TxtReadException
+	{
+		for(Enumeration iEnum= idlDefs.elements();
+			iEnum.hasMoreElements(); )
+		{
+			IdlDefinition iDef= (IdlDefinition)iEnum.nextElement();
+			
+			if(iDef instanceof IdlModule || iDef instanceof IdlTypedef)
+				continue;
+			
+			// Check the mapping with the final names
+			//
+			String sGlobalVbName= iDef.getVbName(true);
+			TxtFilePos txtPos= iDef.getFilePos();
+			String sUniqueName= iDef.getIdlName();
+			
+			if(sGlobalVbName.length() == 0)
+			{	throw new TxtReadException(txtPos, "Cannot map `"
+					+ sUniqueName + "' to nothing."
+					+ " Please use `#pragma vbname " + iDef.getUnEscName()
+					+ " ...' to assign a VB name.");
+			}
+			String oldName= (String)vbNameMap.put(sGlobalVbName, sUniqueName);
+			TxtFilePos oldPos= (TxtFilePos)vbNamePos.put(sGlobalVbName, txtPos);
+			if(oldName != null && !oldName.equals(sUniqueName))
+			{	TxtReadException ex= new TxtReadException(txtPos, "Cannot map `"
+					+ sUniqueName + "' to `" + sGlobalVbName
+					+ "' because `" + sGlobalVbName + "' is already defined."
+					+ " Please use `#pragma vbname " + iDef.getUnEscName()
+					+ " ...' to assign a different VB name.");
+				ex.setNextException(new TxtReadException(oldPos,
+					"Position of the other definition where `" + oldName
+					+ "' maps to VB name `" + sGlobalVbName + "'"));
+				throw ex;
+			}
+		}
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{
+		if(MainOptions.iLogLvl >= 2)
+			System.out.println("W Output directory is `" + opts.vbPath + "'");
+		
+		/* Write contained IdlDefinitions
+		*/
+		super.writeVbFiles(opts);
+		
+		/* Write anonymous defined (IdlDefinition)iDefs
+		*/
+		for(Enumeration iDefEnum= idlDefs.elements();
+			iDefEnum.hasMoreElements(); )
+		{
+			IdlDefinition iDef= (IdlDefinition)iDefEnum.nextElement();
+			if(iDef instanceof IdlSequence)
+			{	IdlSequence iSeq= (IdlSequence)iDef;
+				iSeq.writeVbFiles(opts);
+			}else if(iDef instanceof IdlArray)
+			{	IdlArray iArr= (IdlArray)iDef;
+				iArr.writeVbFiles(opts);
+			}
+		}
+	}
+}

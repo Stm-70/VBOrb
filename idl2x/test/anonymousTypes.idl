@@ -1,0 +1,84 @@
+struct Foo
+{
+	long value;
+	sequence<Foo> chain;				// Deprecated, 4
+};
+
+const string<5> GREETING = "Hello";		// Deprecated, 7
+
+interface FooI
+{
+	readonly attribute wstring<5> name;	// Deprecated, 11
+	wstring<5> op(in wstring<5> param);	// Deprecated, 12, 12
+};
+typedef sequence<wstring> WSSeq;
+typedef sequence<wstring<5> > WS5Seq;	// Deprecated, 15
+typedef wstring<5> NameVector [10];		// Deprecated, 16
+struct A
+{	wstring<5> mem;						// Deprecated, 18
+	wstring mem5[5];					// Deprecated, 19
+	long mem55[5][5];					// Deprecated, 20
+};
+typedef string<5> GreetingTypeOK;
+const GreetingTypeOK GREETINGOK = "Hello";
+typedef wstring<5> ShortWNameOK;
+interface FooOK
+{	readonly attribute ShortWNameOK nameOK;
+	ShortWNameOK opOK(in ShortWNameOK paramOK);
+};
+typedef sequence<ShortWNameOK>NameSeqOK;
+typedef ShortWNameOK NameVectorOK[10];
+struct AOK
+{	GreetingTypeOK memOK;
+};
+
+struct Foo3
+{	fixed<10,5>member;					// Deprecated, 36
+};
+
+typedef fixed<10,5> MyTypeOK;
+struct Foo3OK
+{	MyTypeOK memberOK;
+};
+
+union U switch(long)
+{
+case 1:
+	long array_mem[10];					// Deprecated, 47
+case 2:
+	sequence<long> seq_mem;				// Deprecated, 49
+case 3:
+	string<5> bstring_mem;				// Deprecated, 51
+};
+
+typedef long LongArray[10];
+typedef sequence<long> LongSeq;
+typedef string<5> ShortName;
+union UOK switch(long)
+{
+case 1:
+	LongArray array_mem;
+case 2:
+	LongSeq seq_mem;
+case 3:
+	ShortName bstring_mem;
+};
+
+typedef sequence<sequence<long> > NumberTree;	// Deprecated, 67
+typedef fixed<10,2> FixedArray[10];				// Deprecated, 68
+
+typedef sequence<long> ListOfNumbers;
+typedef sequence<ListOfNumbers> NumberTreeOK;
+typedef fixed<10,2> Fixed_10_2;
+typedef Fixed_10_2 FixedArrayOK[10];
+
+struct Foo5
+{	struct Bar
+	{	long l_mem;
+		double d_mem;
+	}bar_mem_1;
+	Bar bar_mem_2;
+	wstring wstr;
+};
+typedef sequence<Foo5::Bar> FooBarSeq;
+

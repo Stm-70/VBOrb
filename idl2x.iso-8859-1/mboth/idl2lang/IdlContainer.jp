@@ -1,0 +1,160 @@
+/*
+   Copyright (c) 1999-2003 Martin.Both
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+   Library General Public License for more details.
+*/
+#if !defined JP_PACKAGE
+#define JP_PACKAGE mboth.idl2lang
+#define JP_HEAD
+#define JP_TAIL
+#endif
+
+package JP_PACKAGE;
+
+#if defined JP_HEAD
+import java.util.Hashtable;
+import mboth.util.*;
+
+/**
+ * @author  Martin Both
+ *
+ * Direct Known Subclasses:
+ *     IdlModule, IdlInterface, IdlStruct, IdlUnion,
+ *     IdlException, IdlValueType
+ * Indirect Known Subclasses:
+ *     IdlSpecification, IdlObjRefType
+ */
+public abstract class IdlContainer extends IdlScope
+	implements IdlDefinition
+{
+#endif
+
+	/** Contained IdlDefinitions
+	 */
+	public IdlTypedef idlTypedefs;
+	public IdlStruct idlStructs;
+	public IdlUnion idlUnions;
+	public IdlEnum idlEnums;
+	public IdlConst idlConsts;
+	public IdlException idlExceptions;
+	
+	/**
+	 *  @param	identifier	Identifier
+	 */
+	public IdlContainer(IdlIdentifier identifier)
+	{
+		super(identifier);
+	}
+
+	/** (IdlDefinition)
+	 *  Get an IDL name to identify the IDL definition uniquely
+	 *  for a specific language mapping.
+	 *
+	 *  @return		e.g. "<sequence ::T>"
+	 */
+	public String getIdlName()
+	{	return getScopedName().toString();
+	}
+
+	/** Add typedef
+	 *
+	 *  @param	iTypedef
+	 */
+	public void addIdlTypedef(IdlTypedef iTypedef)
+	{
+		if(idlTypedefs == null)
+		{	idlTypedefs= iTypedef;
+		}else
+		{	idlTypedefs.addNext(iTypedef);
+		}
+	}
+
+	/** Add typedefs
+	 *
+	 *  @param	iTypedefs
+	 */
+	public void addIdlTypedefs(IdlTypedef iTypedefs)
+	{
+		if(idlTypedefs == null)
+		{	idlTypedefs= iTypedefs;
+		}else
+		{	idlTypedefs.addNext(iTypedefs);
+		}
+	}
+
+	/** Put struct
+	 *
+	 *  @param	iStruct	
+	 */
+	public void putIdlStruct(IdlStruct iStruct)
+	{
+		if(idlStructs == null)
+		{	idlStructs= iStruct;
+		}else
+		{	idlStructs.putNext(iStruct);
+		}
+	}
+
+	/** Put union
+	 *
+	 *  @param	iUnion	
+	 */
+	public void putIdlUnion(IdlUnion iUnion)
+	{
+		if(idlUnions == null)
+		{	idlUnions= iUnion;
+		}else
+		{	idlUnions.putNext(iUnion);
+		}
+	}
+
+	/** Put enum
+	 *
+	 *  @param	iEnum
+	 */
+	public void putIdlEnum(IdlEnum iEnum)
+	{
+		if(idlEnums == null)
+		{	idlEnums= iEnum;
+		}else
+		{	idlEnums.putNext(iEnum);
+		}
+	}
+
+	/** Add constant
+	 *
+	 *  @param	iConst
+	 */
+	public void addIdlConst(IdlConst iConst)
+	{
+		if(idlConsts == null)
+		{	idlConsts= iConst;
+		}else
+		{	idlConsts.addNext(iConst);
+		}
+	}
+
+	/** Add exception
+	 *
+	 *  @param	iException
+	 */
+	public void addIdlException(IdlException iException)
+	{
+		if(idlExceptions == null)
+		{	idlExceptions= iException;
+		}else
+		{	idlExceptions.addNext(iException);
+		}
+	}
+
+#if defined JP_TAIL
+}
+#endif

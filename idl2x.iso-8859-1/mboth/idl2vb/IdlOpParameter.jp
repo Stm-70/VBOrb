@@ -1,0 +1,29 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlOpParameter.jp"
+
+	/** VB argument
+	 *  @return				argName= parName[_]
+	 */
+	public String getVbArgName()
+	{
+		String parName= getUnEscName();
+		if(VbClsWriter.hashResWord(parName) == null)
+			return parName;
+		else
+			return parName + "_";
+	}
+
+	/** 
+	 *  @param	out		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbArg(VbClsWriter out) throws java.io.IOException
+	{
+		out.writeArg(aOut? VbClsWriter.BYREF: VbClsWriter.BYVAL,
+			getVbArgName(), idlType.getVbName(true), null);
+	}
+}

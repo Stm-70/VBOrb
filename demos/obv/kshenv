@@ -1,0 +1,33 @@
+# UNIX ksh environment
+# Please edit this file and call ". kshenv" to set CLASSPATH environment
+
+# OpenORB installation directory
+OPENORB=/home/t2abot/corba/OpenORB
+
+# Set the java class path
+
+# OpenORB libraries
+CLASSPATH=${OPENORB}/lib/openorb-1.2.0.jar:${OPENORB}/lib/openorb_tools-1.2.0.jar
+
+# Current directory
+CLASSPATH=${CLASSPATH}:.
+
+# Additional libraries
+CLASSPATH=${CLASSPATH}:${OPENORB}/lib/openorb_examples-1.2.0.jar
+CLASSPATH=${CLASSPATH}:${OPENORB}/lib/xerces-J_1.4.0.jar
+CLASSPATH=${CLASSPATH}:${OPENORB}/lib/junit_3.7.jar
+CLASSPATH=${CLASSPATH}:${OPENORB}/lib/openorb_test-1.2.0.jar
+#CLASSPATH=${CLASSPATH}:/opt/javax/lib/ifxjdbc.jar
+#CLASSPATH=${CLASSPATH}:/opt/javax/lib/ffjdbc13.jar
+
+export CLASSPATH
+
+#export PATH=${PATH}:${OPENORB}/bin
+
+# Now you can compile IDL files using
+#java org.openorb.compiler.IdlCompiler ?.idl
+
+#Compiling an example if required
+#. kshenv
+#cd ~OpenORB/examples/obv/support_interface
+#javac obv/support_interface/Client.java

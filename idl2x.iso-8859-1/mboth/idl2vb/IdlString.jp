@@ -1,0 +1,124 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlString.jp"
+
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		return sVbName;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@param	bPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{	if(bPrefix)
+			return VbWriter.STRING; // wide/notwide
+		return wide? "Wstring": VbWriter.STRING;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return false;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String readFunc= wide? "readWstring": "readString";
+		out.writeAssign(vbVariable, false);
+		StringBuffer sBuf= new StringBuffer();
+		sBuf.append(VbClsWriter.OIN);
+		sBuf.append(".");
+		sBuf.append(readFunc);
+		sBuf.append("(");
+		if(size > 0)
+		{	sBuf.append(Integer.toString(size));
+		}
+		sBuf.append(")");
+		out.writeLine(sBuf.toString());
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		String writeFunc= wide? "writeWstring": "writeString";
+		out.writeLine(VbWriter.CALL + " " + VbClsWriter.OOUT + "."
+			+ writeFunc + "(" + vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String sTC= wide? "createWstringTc": "createStringTc";
+		out.writeAssign(vbVariable, true);
+		out.writeLine("oOrb." + sTC + "(" + size + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String getFunc= wide? "getWstring": "getString";
+		out.writeAssign(vbVariable, false);
+		out.writeLine(VbWriter.OANY + "." + getFunc + "()");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		String insertFunc= wide? "insertWstring": "insertString";
+		out.writeLine(VbWriter.CALL + " " + VbWriter.OANY + "."
+			+ insertFunc + "(" + vbVariable + ")");
+	}
+}

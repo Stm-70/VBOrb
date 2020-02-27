@@ -1,0 +1,62 @@
+#define JP_IDL2C
+#define JP_PACKAGE mboth.idl2c
+#define JP_HEAD
+
+	#include "../idl2lang/IdlArray.jp"
+
+	/** C name (without general prefix) or null if unset
+	 */
+	private String sCName;
+	
+	/** (IdlDefinition)
+	 *  Set the C Name
+	 *
+	 *	@param	CName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== CName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setCName(String CName)
+	{	if(prevArr != null)
+			return prevArr.setCName(CName);
+		if(this.sCName != null)
+			return this.sCName;
+		this.sCName= CName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the C Name to identify the definition
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix is used
+	 *  				to build complex names.
+	 *	@return		C Name
+	 */
+	public String getCName(boolean withPrefix)
+	{	
+		if(prevArr != null)
+			return prevArr.getCName(withPrefix);
+		if(this.sCName == null)
+		{	sCName= CWriter.ARRAY + "_" + idlType.getCName(false)
+				+ "_" + Integer.toString(arrSize);
+		}
+		if(withPrefix)
+			return CWriter.CORBA_ + this.sCName;
+		return this.sCName;
+	}
+
+	/**
+	 *  @param	cPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeC(String cPath) throws java.io.IOException
+	{
+		// (getScopedName() is not the ScopedName of the IdlType)
+		System.out.println("Writing " + getIdlName() + " to `"
+			+ getCName(true) + ".c'");
+		
+		//CWriter out= new CWriter(cPath, getCName(true),
+		//	getFilePos().getFileName());
+	}
+}

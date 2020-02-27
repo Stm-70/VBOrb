@@ -1,0 +1,64 @@
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.03 [en] (X11; I; Linux 2.0.29 i586) [Netscape]">
+</HEAD>
+<BODY TEXT="#000000" BGCOLOR="#FFFFFF" LINK="#0000EF" VLINK="#55188A" ALINK="#FF0000">
+<h2>
+Visual Basic 5 Curiosities</h2>
+All examples were tested with VB5.
+<h3>
+Arrays with zero Items</h3>
+<tt>Private Sub Command1_Click()</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim buffer(3) As Byte</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim arr() As Byte</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; arr = MidB(buffer, 1, 0)</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Call MsgBox(LBound(arr) &amp; " / " &amp; UBound(arr))</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; ' LBound is 0 and UBound is -1</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; '&nbsp;but ReDim arr(0 to -1) is not allowed.
+Why?</tt>
+<br><tt>End Sub</tt>
+<br>&nbsp;
+<h3>
+Assigning Arrays</h3>
+<tt>Private Sub Form_Load()</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim byteBuf(3) As Byte</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim byteSeq() As Byte</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; byteSeq = byteBuf&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+' Is allowed</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim longBuf(3) As Long</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; Dim longSeq() As Long</tt>
+<br><tt>&nbsp;&nbsp;&nbsp; longSeq = longBuf&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+' Is not possible. Why?</tt>
+<br><tt>End Sub</tt>
+<br><tt></tt>&nbsp;
+<h3>
+Long VB names</h3>
+It is not possible to compile VB programs to executable files
+if project name plus class name has more than 39 characters
+due to a limitation of VB5 and ActiveX.
+<h3>
+Decimal type</h3>
+VB knows a decimal type but you have to use Variant. CORBA long long
+is mapped to a Decimal inside a Variant.
+<br><tt>Dim decVal As Variant</tt>
+<br><tt>decVal = CDec("12345678901234567890")</tt>
+<h3>
+Global Err object</h3>
+Each ActiveX-DLL has its own global Err object if you use the DLL by reference.
+There is only one global Err object if you include the DLL project in your main
+project for debugging purposes and you get different behavior.
+<h3>
+Garbage collection of weak circular references</h3>
+VB do not garbage collection of weak circular references.
+A reason of some memory leaks in VB applications.
+ActiveX EXE doesn´t terminate if circular references exists.
+<h3>
+Use of `As New' is discouraged</h3>
+    <tt>Dim obj As New cMyClass</tt>
+<br><tt>Set obj = Nothing</tt>
+<br><tt>If obj Is Nothing Then</tt>
+<br>This is never happen therefore declaring variables <tt>As New</tt> is,
+in general, discouraged.
+</body>
+</html>

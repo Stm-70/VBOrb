@@ -1,0 +1,26 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlDefinition.jp"
+
+	/** Set the Visual Basic Name
+	 *  #pragma vbname <idldef> can change the name
+	 *
+	 *	@param	VbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== VbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String VbName);
+
+	/** Get the Visual Basic Name to identify the definition
+	 *	#pragma vbname can change the name before the first call
+	 *
+	 *	@param	withPrefix	With final prefix? The name without prefix
+	 *  					is used to build complex names.
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean withPrefix);
+
+}

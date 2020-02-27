@@ -1,0 +1,374 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlArray.jp"
+
+	/** 
+	 */
+	public final static String LENGTH= "Length";
+	public final static String ARRCNT= "arrCnt";
+	public final static String ARRLEN= "arrLen";
+	public final static String ARRARR= "arrArr";
+	public final static String SP= " ";
+
+	/** See also: IdlIdentifier.sVbClsPrefix
+	 *  #pragma vbclsprefix
+	 *  or null
+	 */
+	private String sVbClsPrefix;
+	
+	/** See also: IdlIdentifier.getVbClsPrefix
+	 *  Returns the vbclsprefix
+	 *
+	 *  @return				sVbClsPrefix
+	 */
+	public String getVbClsPrefix()
+	{	if(sVbClsPrefix == null)
+			throw new InternalError("sVbClsPrefix is not set");
+		return sVbClsPrefix;
+	}
+
+	/** VB name (without general prefix) or null if unset
+	 */
+	private String sVbName;
+	
+	/** (IdlDefinition)
+	 *  Set the Visual Basic Name
+	 *
+	 *	@param	sVbName		Can be "" if not IdlType
+	 *	@return		== null, It was not too late to set
+	 *				== sVbName, It is unsetable
+	 *				otherwise, The old name: Cannot set twice
+	 */
+	public String setVbName(String sVbName)
+	{
+		if(prevArr != null)
+			return prevArr.setVbName(sVbName);
+		if(this.sVbName != null)
+			return this.sVbName;
+		this.sVbName= sVbName;
+		return null;
+	}
+
+	/** (IdlDefinition)
+	 *  Get the Visual Basic Name to identify the definition
+	 *
+	 *	@bPrefix	With final prefix?
+	 *	@return		Visual Basic Name
+	 */
+	public String getVbName(boolean bPrefix)
+	{
+		if(prevArr != null)
+			return prevArr.getVbName(bPrefix);
+		if(sVbName == null)
+		{	// if "Arr" at the end than "Seq" also at the end
+			sVbName= idlType.getVbName(false);
+			IdlType orgType= idlType.getOriginIdlType();
+			if(orgType instanceof IdlChar)
+			{	if(orgType.getIdlName() == IdlSpecification.WCHAR)
+				{	if(sVbName.equals(VbWriter.INTEGER))
+						sVbName= "Wchar";
+				}else
+				{	if(sVbName.equals(VbWriter.BYTE))
+						sVbName= "Char";
+				}
+			}
+			sVbName= sVbName + "Arr" + arrSize;
+		}
+		if(bPrefix)
+			return getVbClsPrefix() + sVbName;
+		return sVbName;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @return				Assign by SET or LET?
+	 */
+	public boolean isVbSet()
+	{	return true;
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbRead(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.NEW + " " + getVbName(true));
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.INITBYREAD + "(" + VbWriter.OIN + ")");
+	}
+
+	/** (IdlType)
+	 *
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbWrite(VbClsWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.WRITEME + "(" + VbWriter.OOUT + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code assigning the TypeCode to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the TypeCode
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbAssignTypeCode(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{
+		idlType.writeVbAssignTypeCode(out, vbVariable);
+		out.writeAssign(vbVariable, true);
+		out.writeLine("oOrb.createArrayTc(" + arrSize + ", "
+			+ vbVariable + ")");
+	}
+
+	/** (IdlType)
+	 *  Write VB code extracting the value from an oAny to a VB variable
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable getting the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbFromAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeAssign(vbVariable, true);
+		out.writeLine(VbWriter.NEW + " " + getVbName(true));
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.INITBYANY + "(" + VbWriter.OANY + ".currentComponent())");
+	}
+
+	/** (IdlType)
+	 *  Write VB code inserting the value into an oAny
+	 *  @param	out		
+	 *  @param	vbVariable	Name of the VB variable containing the value
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbIntoAny(VbWriter out, String vbVariable)
+		 throws java.io.IOException
+	{	
+		out.writeLine(VbWriter.CALL + " " + vbVariable + "."
+			+ VbWriter.INSERTINTOANY + "(" + VbWriter.OANY + ".currentComponent())");
+	}
+
+	/**
+	 *  @param	opts.vbPath		Prefix
+	 *  @param	opts.srvout		Write additional server skeleton examples
+	 *
+	 *	@exception	IOException	
+	 */
+	public void writeVbFiles(MainOptions opts) throws java.io.IOException
+	{
+		if(getFileIncludeLvl() > IDL2VB.iGenIncludeLvl)
+		{	if(MainOptions.iLogLvl >= 8)
+				System.out.println("D " + getIdlName()
+					+ " is included only");
+			return;
+		}
+		// Write VB class
+		this.writeVbCls(opts.vbPath);
+	}
+
+	/**
+	 *  @param	vbPath		Prefix
+	 *
+	 *	@exception	IOException	
+	 */
+	protected void writeVbCls(String vbPath) throws java.io.IOException
+	{
+		if(MainOptions.iLogLvl >= 4)
+		{	// (getScopedName() is not the ScopedName of the IdlType)
+			System.out.println("I Writing " + getIdlName() + " to `"
+				+ getVbName(true) + ".cls'");
+		}
+		VbClsWriter vbC= new VbClsWriter(vbPath, getVbName(true),
+			getFilePos().getFileName());
+
+		vbC.writeLine();
+		vbC.writeLine("'IDL Name: " + getIdlName());
+		vbC.write(VbWriter.CONST + SP + ARRLEN + SP
+			+ VbWriter.AS + SP + VbWriter.LONG + " = " + arrSize);
+		if(arrSize < 32768)
+			vbC.write("&");
+		vbC.writeLine();
+		vbC.writeLine(VbWriter.PRIVATE + SP + ARRARR + "(0 " + VbWriter.TO + SP
+			+ ARRLEN + " - 1) " + VbWriter.AS + SP + idlType.getVbName(true));
+
+		// Public Property Get Length() As Long
+		vbC.writeLine();
+		vbC.writePropertyHead(VbWriter.PUBLIC, VbWriter.GET, LENGTH);
+		vbC.writePropertyBody(VbWriter.LONG, true, false);
+		vbC.writeLine(LENGTH + " = " + ARRLEN);
+		vbC.writePropertyTail(null, null);
+
+		// Public Property Get Item(ByVal index As Long) As ...
+		vbC.writeLine();
+		vbC.writeLine("'index must be in the range of 0 to Length - 1");
+		vbC.writePropertyHead(VbWriter.PUBLIC, VbWriter.GET, "Item");
+		vbC.write(VbWriter.BYVAL + " index " + VbWriter.AS
+			+ SP + VbWriter.LONG);
+		vbC.writePropertyBody(idlType.getVbName(true), true, true);
+		// Zuweisung ist stark Typeabh"angig!
+		// Eigene Methode in IdlType einbauen???
+		vbC.writeAssign("Item", idlType.isVbSet());
+		vbC.writeLine(ARRARR + "(index)");
+		vbC.writePropertyTail(getVbName(false) + ".Item." + VbWriter.GET, null);
+
+		//  Public Property Let/Set Item(ByVal index As Long, ByVal Item As ...
+		vbC.writeLine();
+		vbC.writeLine("'index must be in the range of 0 to Length - 1");
+		vbC.writePropertyHead(VbWriter.PUBLIC,
+			idlType.isVbSet()? VbWriter.SET: VbWriter.LET, "Item");
+		vbC.write(VbWriter.BYVAL + " index " + VbWriter.AS
+			+ SP + VbWriter.LONG + ", " + VbWriter.BYVAL + SP + "Item");
+		vbC.writePropertyBody(idlType.getVbName(true), false, true);
+		// Zuweisung ist stark Typeabh"angig!
+		// Eigene Methode in IdlType einbauen???
+		vbC.writeAssign(ARRARR + "(index)", idlType.isVbSet());
+		vbC.writeLine("Item");
+		vbC.writePropertyTail(getVbName(false) + ".Item."
+			+ (idlType.isVbSet()? VbWriter.SET: VbWriter.LET), null);
+
+		// Public Function getItems(ByRef Arr() As ...
+		vbC.writeLine();
+		vbC.writeFuncHead(VbWriter.PUBLIC, "getItems");
+		vbC.writeFuncArg(VbWriter.BYREF, "Arr()", idlType.getVbName(true),
+			null);
+		vbC.writeFuncBody(VbWriter.LONG, true);
+		vbC.writeLine("getItems = " + ARRLEN);
+		vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+		vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+			+ SP + ARRLEN + " - 1");
+		vbC.indent(true);
+		// Zuweisung ist stark Typeabh"angig!
+		// Eigene Methode in IdlType einbauen???
+		vbC.writeAssign("Arr(" + VbWriter.LBOUND + "(Arr) + "
+			+ ARRCNT + ")", idlType.isVbSet());
+		vbC.writeLine(ARRARR + "(" + ARRCNT + ")");
+		vbC.indent(false);
+		vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		vbC.writeFuncTail("getItems", null);
+
+		// Public Sub setItems(ByRef Arr() As ...
+		vbC.writeLine();
+		vbC.writeSubHead(VbWriter.PUBLIC, "setItems");
+		vbC.writeSubArg(VbWriter.BYREF, "Arr()", idlType.getVbName(true), null);
+		vbC.writeSubBody(true);
+		vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+		vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+			+ SP + ARRLEN + " - 1");
+		vbC.indent(true);
+		// Zuweisung ist stark Typeabh"angig!
+		// Eigene Methode in IdlType einbauen???
+		vbC.writeAssign(ARRARR + "(" + ARRCNT + ")", idlType.isVbSet());
+		vbC.writeLine("Arr(" + VbWriter.LBOUND + "(Arr) + " + ARRCNT + ")");
+		vbC.indent(false);
+		vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		vbC.writeSubTail("setItems");
+
+		// Helper, initByRead()
+		vbC.writeLine();
+		vbC.writeLine("'Helper");
+		vbC.writeSubHead(VbWriter.PUBLIC, VbWriter.INITBYREAD);
+		vbC.writeArg(VbWriter.BYVAL, VbWriter.OIN, VbWriter.CORBSTREAM, null);
+		vbC.writeSubBody(true);
+		
+		// Optimize reading sequence of octets
+		IdlType orgType= idlType.getOriginIdlType();
+		if(orgType instanceof IdlOctet)
+		{	vbC.writeLine(VbWriter.CALL + SP + VbWriter.OIN
+				+ ".readOctets(" + ARRARR + ", " + ARRLEN + ")");
+		}else if(orgType instanceof IdlChar &&
+			orgType.getIdlName() != IdlSpecification.WCHAR)
+		{	vbC.writeLine(VbWriter.CALL + SP + VbWriter.OIN
+				+ ".readChars(" + ARRARR + ", " + ARRLEN + ")");
+		}else
+		{	vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+			vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+				+ SP + ARRLEN + " - 1");
+			vbC.indent(true);
+			idlType.writeVbRead(vbC, ARRARR + "(" + ARRCNT + ")");
+			vbC.indent(false);
+			vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		}
+		vbC.writeSubTail(getVbName(false) + ".read");
+		
+		// Helper, writeMe()
+		vbC.writeLine();
+		vbC.writeLine("'Helper");
+		vbC.writeSubHead(VbWriter.PUBLIC, VbWriter.WRITEME);
+		vbC.writeArg(VbWriter.BYVAL, VbWriter.OOUT, VbWriter.CORBSTREAM, null);
+		vbC.writeSubBody(true);
+		
+		// Optimize writing sequence of octets
+		if(orgType instanceof IdlOctet)
+		{	vbC.writeLine(VbWriter.CALL + SP + VbWriter.OOUT
+				+ ".writeOctets(" + ARRARR + ", " + ARRLEN + ")");
+		}else if(orgType instanceof IdlChar &&
+			orgType.getIdlName() != IdlSpecification.WCHAR)
+		{	vbC.writeLine(VbWriter.CALL + SP + VbWriter.OOUT
+				+ ".writeChars(" + ARRARR + ", " + ARRLEN + ")");
+		}else
+		{	vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+			vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+				+ SP + ARRLEN + " - 1");
+			vbC.indent(true);
+			idlType.writeVbWrite(vbC, ARRARR + "(" + ARRCNT + ")");
+			vbC.indent(false);
+			vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		}
+		vbC.writeSubTail(getVbName(false) + ".write");
+
+		vbC.writeLine();
+		vbC.writeLine("'Helper");
+		vbC.writeSubHead(VbWriter.PUBLIC, VbWriter.INITBYANY);
+		vbC.writeSubArg(VbWriter.BYVAL, VbWriter.OANY, VbWriter.CORBANY, null);
+		vbC.writeSubBody(true);
+		vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+		vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+			+ SP + ARRLEN + " - 1");
+		vbC.indent(true);
+		idlType.writeVbFromAny(vbC, ARRARR + "(" + ARRCNT + ")");
+		vbC.writeLine(VbWriter.CALL + VbWriter.SP
+			+ VbWriter.OANY + ".nextPos");
+		vbC.indent(false);
+		vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		vbC.writeLine(VbWriter.CALL + VbWriter.SP
+			+ VbWriter.OANY + ".rewind");
+		vbC.writeSubTail(VbWriter.INITBYANY);
+
+		vbC.writeLine();
+		vbC.writeLine("'Helper");
+		vbC.writeSubHead(VbWriter.PUBLIC, VbWriter.INSERTINTOANY);
+		vbC.writeSubArg(VbWriter.BYVAL, VbWriter.OANY, VbWriter.CORBANY, null);
+		vbC.writeSubBody(true);
+		vbC.writeDimLine(ARRCNT, VbWriter.LONG);
+		vbC.writeLine(VbWriter.FOR + SP + ARRCNT + " = 0 " + VbWriter.TO
+			+ SP + ARRLEN + " - 1");
+		vbC.indent(true);
+		idlType.writeVbIntoAny(vbC, ARRARR + "(" + ARRCNT + ")");
+		vbC.writeLine(VbWriter.CALL + VbWriter.SP
+			+ VbWriter.OANY + ".nextPos");
+		vbC.indent(false);
+		vbC.writeLine(VbWriter.NEXT + SP + ARRCNT);
+		vbC.writeLine(VbWriter.CALL + VbWriter.SP
+			+ VbWriter.OANY + ".rewind");
+		vbC.writeSubTail(VbWriter.INSERTINTOANY);
+
+		vbC.close();
+	}
+}

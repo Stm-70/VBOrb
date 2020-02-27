@@ -1,0 +1,269 @@
+#if defined OK
+
+interface Tree;
+interface Tree
+{	void print();
+};
+interface Tree;
+
+valuetype WeightedBinaryTree
+{	typedef sequence <long> WeightSeq;
+	// state definition
+	private unsigned long weight;
+	private WeightedBinaryTree left;
+	private WeightedBinaryTree right;
+	// initializer
+	factory init(in unsigned long w);
+	// local operations
+	WeightSeq pre_order();
+	WeightSeq post_order();
+};
+valuetype WTree: WeightedBinaryTree supports Tree
+{	factory init(in long hh, in boolean g);
+};
+
+module Example
+{	interface Foo
+	{	/* anything */
+	};
+	valuetype FooSeq sequence <Foo>;
+#pragma vbname sequence<Foo> ExampleFooSequence
+	interface Bar
+	{	void doit(in FooSeq seq1);
+	};
+};
+
+module Example2
+{	valuetype FooSeq;
+	interface Foo
+	{	/* anything */
+	};
+	valuetype FooSeq
+	{	typedef sequence<Foo> FooS;
+#pragma vbname sequence<Foo> Example2FooSequence
+		public FooS data;
+	};
+	/*valuetype FooSeq3
+	{	public sequence<FooSeq3> data;
+	};
+	*/
+	interface Bar
+	{	void doit(in FooSeq seq1);
+	};
+};
+
+//valuetype FooSeq sequence <FooSeq>;
+valuetype FooSeq sequence <long>;
+
+interface I{};
+abstract interface AI{};
+interface J{};
+abstract interface AJ{};
+valuetype V{};
+abstract valuetype AV{};
+valuetype W{};
+abstract valuetype AW{};
+custom valuetype CW{};
+// abstract value supports interface: single
+abstract valuetype V1:AV supports I{};
+// abstract value supports abstract interface: multiple
+abstract valuetype V2:AV supports I, AI, AJ{};
+// abstract value may inherit from abstract value: multiple
+abstract valuetype V3:AV,AW supports I, AI, AJ{};
+// stateful value supports interface: single
+valuetype V5 supports I{};
+// stateful value supports abstract interface: multiple
+valuetype V6 supports I, AI, AJ{};
+// stateful value may inherit from abstract value: multiple
+valuetype V7:AV,AW supports I, AI, AJ{};
+// stateful value may inherit from stateful value: single (may be truncatable)
+valuetype V8:V,AV,AW supports I, AI, AJ{};
+valuetype V9:truncatable V,AV,AW supports I, AI, AJ{};
+
+#endif // OK
+
+#if defined ERR001
+	valuetype A;
+	// It is illegal to inherit from a forward-declared valuetype
+	// whose definition has not yet been seen
+	valuetype B : A;
+#endif
+
+#if defined ERR002
+	interface A;
+	valuetype B : A;
+#endif
+
+#if defined ERR003
+	valuetype A long;
+	// Scoped name of an IDL valuetype expected
+	valuetype B : A;
+#endif
+
+#if defined ERR004
+	valuetype A { private long data ;};
+	// "{" of valuetype body expected
+	valuetype B : truncatable A;
+#endif
+
+#if defined ERR005
+	custom valuetype A;
+	// Different abstract or custom modifiers for valuetype `A'
+	valuetype A;
+#endif
+
+#if defined ERR006
+	// "{" of valuetype body expected
+	abstract valuetype A long;
+#endif
+
+#if defined ERR007
+	abstract valuetype A {  void test(in long a);};
+	// The truncatable modifier may not be used if the valuetype being
+	// defined is a custom value.
+	custom valuetype B : truncatable A;
+#endif
+
+#if defined ERR010
+	// An abstract valuetype cannot have <state_members> or <initializers>
+	abstract valuetype A { private long data ;};
+#endif
+
+#if defined ERR011
+	// An abstract valuetype cannot have <state_members> or <initializers>
+	abstract valuetype A { factory init ();};
+#endif
+
+#if defined ERR012
+	// Initializer operation must use only in parameters
+	valuetype A { factory init (out long hh, inout boolean g);};
+#endif
+
+#if defined ERR013
+	valuetype A
+	{	factory init(in long hh, in boolean g);
+		// The names of the initializers are part of the name scope
+		// of the valuetype:
+		// IDL identifier `init' redefined after use
+		factory init(in long hh);
+	};
+#endif
+
+#if defined ERR014
+	valuetype A
+	{	factory init(in long hh, in boolean g);
+		typedef long myLong;
+		myLong exists();
+	};
+	valuetype B : A
+	{	// Initialzers defined in a valuetype are not inherited by derived
+		// valuetypes, and hence the names of the initializers are free
+		// to be reused in a derived valuetype.
+		factory init(in myLong hh);
+		myLong _long(out myLong test);
+		// Redefine operation `exists' in a derived valuetype
+		myLong exists();
+	};
+#endif
+
+#if defined ERR020
+	valuetype A long;
+	// Any IDL type may be used to declare a value box except for a valuetype.
+	valuetype B A;
+#endif
+
+#if defined ERR021
+	valuetype A {};
+	// Any IDL type may be used to declare a value box except for a valuetype.
+	valuetype B A;
+#endif
+
+#if defined ERR022
+custom valuetype V{};
+//custom abstract valuetype CV{};
+abstract custom valuetype CV{};
+#endif
+
+#if defined ERR101
+interface I{};
+abstract interface AI{};
+interface J{};
+abstract interface AJ{};
+valuetype V{};
+abstract valuetype AV{};
+valuetype W{};
+abstract valuetype AW{};
+custom valuetype CW{};
+// abstract value supports interface: single
+// Values cannot support more than one non-abstract interface
+abstract valuetype V1:AV supports I, J{};
+#endif
+
+#if defined ERR102
+interface I{};
+abstract interface AI{};
+interface J{};
+abstract interface AJ{};
+valuetype V{};
+abstract valuetype AV{};
+valuetype W{};
+abstract valuetype AW{};
+custom valuetype CW{};
+// abstract value may inherit from stateful value: no
+// An abstract valuetype may only inherit from other abstract valuetype
+abstract valuetype V4:V,AV,AW supports I, AI, AJ{};
+#endif
+
+#if defined ERR104
+interface I{};
+abstract interface AI{};
+interface J{};
+abstract interface AJ{};
+valuetype V{};
+abstract valuetype AV{};
+valuetype W{};
+abstract valuetype AW{};
+custom valuetype CW{};
+// stateful value supports interface: single
+// Values cannot support more than one non-abstract interface
+valuetype V5 supports I, J{};
+#endif
+
+#if defined ERR105
+interface I{};
+abstract interface AI{};
+interface J{};
+abstract interface AJ{};
+valuetype V{};
+abstract valuetype AV{};
+valuetype W{};
+abstract valuetype AW{};
+custom valuetype CW{};
+// stateful value may inherit from stateful value: single (may be truncatable)
+// A stateful value must be the first element in the inheritance list
+valuetype V8:V,AV,W,AW supports I, AI, AJ{};
+#endif
+
+#if defined ERR200
+valuetype V1
+// Position of the inherit state member definition
+{	public long a, b, c;
+};
+valuetype V2 : V1
+// Redefine state member `b' in a derived valuetype
+{	private string x, b, y;
+};
+#endif
+
+#if defined ERR201
+valuetype V1
+{	public long a, b, c;
+};
+valuetype V2
+{	private string x, b, y;
+};
+// A stateful value must be the first element in the inheritance list
+valuetype V3:V1,V2
+{	private string x, b, y;
+};
+#endif

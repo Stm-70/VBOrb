@@ -1,0 +1,107 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.51 [en] (X11; I; Linux 2.2.5 i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EF" vlink="#55188A" alink="#FF0000">
+
+<h2>
+<font color="#009900">Exceptions</font></h2>
+
+<hr NOSHADE WIDTH="100%">
+The CORBA standard defines two different kinds of exceptions:
+<A HREF="#UserEx">User Exceptions</A> and 
+<A HREF="#SystemEx">System Exceptions</A>.
+<h3>User Exceptions</h3>
+<A NAME="UserEx"></A>
+<h4>Throwing (sending) an user exception</h4>
+If writing a server in VB user exceptions will be thrown by the
+following code. The execute method of the skeleton code test
+if a user exception is set and send them over the wire to the client.
+<br>
+<tt>
+<br>&nbsp;&nbsp;&nbsp;Dim oMyEx As c_MyFileNotFoundException
+<br>&nbsp;&nbsp;&nbsp;Set oMyEx = New c_MyFileNotFoundException
+<br>&nbsp;&nbsp;&nbsp;oMyEx.fileName = "xy"
+<br>&nbsp;&nbsp;&nbsp;Call VBOrb.raiseUserEx(oMyEx)
+</tt>
+<h4>Catching (receiving) an user exception</h4>
+The invokeReq method of class cOrbObjRef receives the user exception
+and put them in a normal exception.
+Here is the code which can be used by the client to handle user exceptions.
+<br>
+<tt>
+<br>&nbsp;&nbsp;&nbsp;Public Function myDoFoo ...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;On Error GoTo ErrHandler
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Call remoteObject.method()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exit Function
+<br>&nbsp;&nbsp;&nbsp;ExHandler:
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dim oEx As VBOrb.cOrbException
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set oEx = VBOrb.getException()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'If oEx is c_MyFileNotFoundException Then ...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select Case TypeName(oEx)
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Case "c_MyFileNotFoundException"
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Dim oMyEx as c_MyFileNotFoundException
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set oMyEx = oEx
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Do something with oMyEx...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Case Else
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' Unexpected user exception
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;End Select
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exit Function
+<br>&nbsp;&nbsp;&nbsp;ErrHandler:
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If VBOrb.ErrIsUserEx() Then Resume ExHandler
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Call VBOrb.ErrReraise("myDoFoo")
+<br>&nbsp;&nbsp;&nbsp;End Function
+</tt>
+<h3>System Exceptions</h3>
+<A NAME="SystemEx"></A>
+System exceptions are standard exception types, which are defined by the CORBA specification
+and are used by the Object Request Broker (ORB) and object adapters (OA). Standard exceptions
+may be returned as a result of any operation invocation, regardless of the interface on which
+the requested operation was attempted. There are two aspects to the mapping of System Exceptions.
+One aspect is generating an appropriate Err.Number for the operation to return. The other aspect
+is conveying System Exception information via the standard Error Object.
+<p>
+The Err.Description of a System Exception looks like:
+<p>
+CORBA System Exception: [&lt;exception repository id>] minor code [&lt;minor code>][&lt;completion status>]
+<p>
+where the &lt;exception repository id> and &lt;minor code> are those of the CORBA system exception.
+&lt;completion status> is  YES, NO, or MAYBE based upon the value of the system exception's CORBA
+completion status.
+<h4>Throwing (sending) system exceptions</h4>
+An example of throwing a system exceptions is shown by the following code.
+<br>
+<tt>
+<br>&nbsp;&nbsp;&nbsp;Call VBOrb.raiseBADPARAM(1, VBOrb.CompletedNO)
+</tt>
+<h4>Catching (receiving) system exceptions</h4>
+The invokeReq method of class cOrbObjRef receives the system exception
+and put them into the error object.
+Here is the code which can be used by the client to handle system exceptions.
+<br>
+<tt>
+<br>&nbsp;&nbsp;&nbsp;Public Function myDoFoo ...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;On Error GoTo ErrHandler
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Call remoteObject.method()
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exit Function
+<br>&nbsp;&nbsp;&nbsp;ObjNotExist:
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exit Function
+<br>&nbsp;&nbsp;&nbsp;ErrHandler:
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If VBOrb.ErrIsSystemEx() Then
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'Do something with Err.Description
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If Err.Number = (VBOrb.ITF_E_OBJECT_NOT_EXIST_NO Or vbObjectError) Then
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Resume ObjNotExist
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;End If        
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;End If
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Call VBOrb.ErrReraise("myDoFoo")
+<br>&nbsp;&nbsp;&nbsp;End Function
+</tt>
+
+<hr NOSHADE WIDTH="100%">
+</body>
+</html>

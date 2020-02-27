@@ -1,0 +1,100 @@
+// Common Object Request Broker Architecture (CORBA), v2.6 December 2001
+//
+// Include this file in your IDL if you need the TypeCode definition.
+
+#ifndef _TYPECODE_IDL_
+#define _TYPECODE_IDL_
+
+#pragma prefix "omg.org"
+
+#pragma vbClsPrefix c
+#pragma vbModPrefix m
+
+#if !defined(_TypeCodeImpl)
+
+module CORBA
+{
+	// TypeCode is a pseudo object built into the IDL compiler
+	// Hence there is only a forward declaration
+	
+	interface TypeCode;	// pseudo object
+};
+
+#else // _TypeCodeImpl
+
+#define TypeCode TypeCodeMoveAway
+#include <CORBA.idl>
+#undef TypeCode
+
+module CORBA
+{
+	// To build an example for implementing the TypeCode pseudo object
+	// I'm using a valuetype
+	
+	valuetype TypeCode
+	{
+		private TCKind lTCKind;
+		private RepositoryId sTCId;
+		private Identifier sTCName;
+		
+		exception Bounds {};
+		exception BadKind {};
+		
+		// for all TypeCode kinds
+		boolean equal(in TypeCode tc);
+		boolean equivalent(in TypeCode tc);
+		TypeCode get_compact_typecode();
+		TCKind kind();
+		
+		// for tk_objref, tk_struct, tk_union, tk_enum, tk_alias,
+		// tk_value, tk_value_box, tk_native, tk_abstract_interface
+		// tk_local_interface and tk_except
+		RepositoryId id() raises(BadKind);
+		
+		// for tk_objref, tk_struct, tk_union, tk_enum, tk_alias,
+		// tk_value, tk_value_box, tk_native, tk_abstract_interface
+		// tk_local_interface and tk_except
+		Identifier name() raises(BadKind);
+		
+		// for tk_struct, tk_union, tk_enum, tk_value,
+		// and tk_except
+		unsigned long member_count() raises(BadKind);
+		Identifier member_name(in unsigned long index)
+			raises(BadKind, Bounds);
+		
+		// for tk_struct, tk_union, tk_value,
+		// and tk_except
+		TypeCode member_type(in unsigned long index)
+			raises(BadKind, Bounds);
+		
+		// for tk_union
+		any member_label(in unsigned long index)
+			raises(BadKind, Bounds);
+		TypeCode discriminator_type() raises(BadKind);
+		long default_index() raises(BadKind);
+		
+		// for tk_string, tk_sequence, and tk_array
+		unsigned long length() raises(BadKind);
+		
+		// for tk_sequence, tk_array, tk_value_box and tk_alias
+		TypeCode content_type() raises(BadKind);
+		
+		// for tk_fixed
+		unsigned short fixed_digits() raises(BadKind);
+		short fixed_scale() raises(BadKind);
+		
+		// for tk_value
+		Visibility member_visibility(in unsigned long index)
+			raises(BadKind, Bounds);
+		ValueModifier type_modifier() raises(BadKind);
+		TypeCode concrete_base_type() raises(BadKind);
+	};
+};
+
+// Map long IDL names to short Visual Basic names
+//
+#pragma vbName CORBA::TypeCode OrbTypeCode
+
+#endif // _TypeCodeImpl
+
+#endif // _TYPECODE_IDL_

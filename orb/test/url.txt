@@ -1,0 +1,41 @@
+
+
+Right URLs
+==========
+corbaloc::1.0@localhost:9000/NameService
+corbaloc:iiop:1.1@localhost:9000/NameService
+corbaname::localhost:9000#id1.kind1
+corbaloc::localhost:9000,iiop::9000 --> Two IIOP profiles
+corbaloc::1.1@localhost:9002,:1.1@:9001 --> Two IIOP profiles
+corbaloc::1.2@localhost:9002,:1.2@:9001 --> TAG_ALTERNATE_IIOP_ADDRESS
+corbaloc::1.2@localhost:9002,:1.2@:9001,:myhost
+
+Wrong URLs
+==========
+corbaloc:1.0@localhost:9000/NameService
+corbaloc:iiop:1.1@localhost,9000/NameService
+corbaloc::localhost:9000,::9000#id1.kind1
+corbaloc::localhost:9000,::9001
+
+corbaloc::localhost:9000,::1.1@:9001
+corbaloc::localhost:9000,:0.1@:9001
+corbaloc::localhost:9000,:a.t@:9001
+
+
+Umsetzung der Escape Sequenzen bei corbaloc und corbaname???
+corbaname::localhost:9000#id1.kind1%5C.h  -> id1.kind1\.h -> id1.kind1.h
+
+Missing an address
+corbaname:/NameService
+corbaname:#halloid.kind
+
+string_name % escapes
+=====================
+Stringified Name            After URL Escapes       Comment
+a.b/c.d                     a.b/c.d                 URL form identical
+<a>.b/c.d                   %3ca%3e.b/c.d Escaped “<“ and “>”
+a.b/  c.d            a.b/%20%20c.d Escaped two “ “ spaces
+a%b/c%d          a%25b/c%25d Escaped two “%” percents
+a\\b/c.d           a%5c%5cb/c.d Escaped “\” character,
+ which is already escaped
+in the stringified name

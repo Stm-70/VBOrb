@@ -1,0 +1,116 @@
+IDL2VB
+======
+
+Dieses Verzeichnis enthält die Aufrufskripte für den IDL2VB.
+
+Die jeweils aktuellste Version von VBOrb und IDL2VB bekommen Sie unter
+http://home.t-online.de/home/Martin.Both/vborb_de.html
+
+Der IDL2VB ist freie Software. In der Datei vb/COPYING.LIB sind die genauen
+Bedingungen für das Kopieren und Verwenden dieser Software beschrieben.
+Wenn Sie beabsichtigen diese Software weiterzugeben, denken Sie daran,
+auch den Quelltext des IDL2VB von meiner Web-Seite zu laden und mit
+anzubieten!
+
+
+Verzeichnisstruktur
+-------------------
+
+vb/idl/                 Wurzel-Verzeichnis
+
+  LIESMICH.TXT          Diese Datei
+
+  README.TXT            Diese Datei, in englischer Übersetzung
+
+  IDL2VB.jar            Java Archiv, das den Compiler enthält
+
+  idl2vb.bat            Beipiel für eine Startdatei, um den Aufruf
+                        des Compilers unter Windows zu vereinfachen
+
+  idl2vb                Beipiel für eine Startdatei unter UNIX
+
+
+Starten des Compilers
+---------------------
+Falls Sie JDK 1.2 und Windows verwenden, sollten Sie folgendes tun,
+um den Compiler zu starten.
+Öffnen Sie die Beispiel-Startdatei idl2vb.bat mit einem Editor.
+Passen Sie den Inhalt der Datei Ihrer Verzeichnisstruktur an
+und rufen
+	idl2vb
+auf oder fügen Sie die Datei IDL2VB.jar Ihrem CLASSPATH hinzu und
+rufen
+	java mboth.idl2vb.IDL2VB
+oder
+	java -jar IDL2VB.jar
+auf.
+
+
+Falls Sie JDK 1.1 und UNIX-ksh verwenden, sollten Sie folgendes
+eingeben.
+	# IDL2VB ist das Verzeichnis, wo die Datei IDL2VB.jar steht
+	IDL2VB=/home/martin/vb/idl
+	export CLASSPATH=${IDL2VB}/IDL2VB.jar:${CLASSPATH}
+Danach kann der Compiler mit
+	java mboth.idl2vb.IDL2VB
+aufgerufen werden. Am besten schreiben Sie sich ein kleines Shell-Script
+und nennen es idl2vb.
+
+
+Tipp:
+Der einfachste Weg alle generierten .cls und .bas Dateien in ein
+VB-Projekt zu bekommen, ist die gewünschten Dateien in einem Explorer-
+Fenster zu markieren. Nun greifen Sie sich die Dateien mit der Maus
+und lassen sie in dem Projektfenster von Visual Basic fallen.
+
+
+Kurzanleitung für den IDL2VB-Compiler
+=====================================
+
+Aufruf: java mboth.idl2vb.IDL2VB [-BCXMSONEDIVh] [file ...]
+ -B<path>       Festlegen des VB-Ausgabe-Verzeichnisses
+ -C<prefix>     Voreinstellung für vbClsPrefix ändern (sonst c_)
+ -X             Erzeuge öffentliche VB-Klassenmodule für ActiveX
+ -M<prefix>     Voreinstellung für vbModPrefix ändern (sonst m_)
+ --simplevalues Schreibe einfache direkt zu verwendene "values"
+                und keine Beispiele.
+ --novalfacts   Schreibe keine "value factories".
+ -S             Schreibe zusätzliche Skeletons als Grundlage
+                für die Serverprogrammierung
+ -O<name>       Voreinstellung für den Namen der ORB-DLL ändern
+                (sonst VBOrb)
+ -G<DateiTiefe> Generiere Quelltexte für mit #include eingebundene
+                Dateien.
+ -N             Preprozessor für die Datei(en) aufrufen,
+                mit Compilerdurchlauf, ohne VB-Ausgabe
+ -E             Nur den Preprozessor für die Datei(en) aufrufen,
+                ohne Compilerdurchlauf, ohne VB-Ausgabe
+ -D<macro...>   Definiert ein Preprozessor-Makro
+ -I<path(s)>    Fügt Suchpfad(e) für Include-Dateien hinzu
+ -V, --version  Anzeige der Versionsnummer
+ -h, --help     Anzeige der möglichen Compiler-Optionen
+
+
+Beipiel um die Klassenmodule für das Grid-Demo zu erzeugen
+----------------------------------------------------------
+idl2vb -B../demos/grid ../demos/grid/grid.idl
+oder
+java mboth.idl2vb.IDL2VB -B../demos/grid ../demos/grid/grid.idl
+
+
+Beispiel um die Server-Klassen für das Grid-Demo zu erzeugen
+------------------------------------------------------------
+idl2vb -S -B../demos/grid_server ../demos/grid/grid.idl
+
+Es ist möglich den C-Präprozessor auch alleine für sich zu
+verwenden.
+Beipiel für ein C-Programm wie hello.c
+--------------------------------------
+idl2vb -E -D__GNUC__=2 -D__STDC__=1 -D__GNUC_MINOR__=91 \
+	-I/usr/include:/usr/lib/gcc-lib/i486-linux/egcs-2.91.66/include \
+	hello.c
+Das Ergebnis ist genauso als ob man gcc -E -P hello.c aufrufen würde.
+
+
+Bitte senden Sie gefundene Fehler, Anmerkungen und Kritik an
+Martin.Both@t-online.de

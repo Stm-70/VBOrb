@@ -1,0 +1,314 @@
+
+#if defined OK
+
+valuetype undefined;
+
+struct GGGGG;
+union HHHHH;
+
+struct Foo0;
+
+struct Foo0
+{	long value;
+	sequence<Foo0> chain;	// Deprecated
+};
+
+struct Foo0;
+
+struct Foo1;
+typedef sequence<Foo1> Foo1Seq;
+struct Foo1
+{	long value;
+	Foo1Seq chain;
+};
+
+struct Foo2;
+typedef sequence<Foo2> Foo2Seq;
+typedef sequence<Foo2Seq> Foo2SeqSeq;
+struct Foo2
+{	long value;
+	Foo2SeqSeq chain;
+};
+
+union Bar;				// Forward declaration
+typedef sequence<Bar> BarSeq;
+union Bar switch(long)	// Define forward-declared union
+{
+case 0:
+	long l_mem;
+case 1:
+	struct Foo
+	{	double d_mem;
+		BarSeq nested;	// OK, recurse on enclosing type being defined
+	}s_mem;
+case 3:
+	sequence<Bar> sb_mem;
+};
+
+union Bar2;				// Forward declaration
+typedef sequence<Bar2> Bar2Seq;
+typedef sequence<Bar2Seq> Bar2SeqSeq;
+union Bar2 switch(long)	// Define forward-declared union
+{
+case 0:
+	long l_mem;
+case 1:
+	struct Foo
+	{	double d_mem;
+		Bar2SeqSeq nested;	// OK, recurse on enclosing type being defined
+	}s_mem;
+case 3:
+	sequence<Bar2Seq> sb_mem;
+};
+
+struct Foo4;			// Forward declaration
+typedef sequence<Foo4> Foo4Seq;
+
+struct Foo4				// Provide definition of Foo4
+{	long l_mem;
+	Foo4Seq chain;
+};
+
+interface J4
+{	attribute Foo4Seq a1;		// OK, Foo4 is known
+	Foo4Seq op();				// OK, Foo4 is known
+	void op42(in Foo4Seq p1);	// OK, Foo4 is known
+};
+
+module DmitryBotcharnikov
+{
+	typedef long UniqueId;
+	
+	enum Type
+	{	OP_ID,
+		OP_POSITION
+	};
+	struct Position;
+	typedef sequence<Position,1> PositionSeq;
+
+	union ObjectPointer;	// I added this
+
+	struct Position
+	{
+		unsigned long offset;
+		union ObjectPointer switch(Type)
+		{
+		case OP_ID:
+			UniqueId id;
+		case OP_POSITION:
+			PositionSeq pos;
+		} pointer;
+	};
+};
+
+#endif // OK
+
+#if defined ERR00s
+
+union Foo;
+
+struct Bar
+{	long value;
+	Foo chain;		// Illegal, Foo is uncomplete
+};
+
+#endif // ERR00s
+
+#if defined ERR00u
+
+struct Foo;
+
+union Bar switch(long)
+{
+case 0:	long value;
+case 1:	Foo chain;		// Illegal, Foo is uncomplete
+};
+
+#endif // ERR00u
+
+
+#if defined ERR01s
+
+struct Foo;
+
+typedef sequence<Foo> FooSeq;
+
+struct Bar
+{	long value;
+	FooSeq chain;	// Illegal, Foo is not an enclosing struct or union
+};
+
+#endif // ERR01s
+
+#if defined ERR01u
+
+union Foo;
+
+typedef sequence<Foo> FooSeq;
+
+union Bar switch(long)
+{
+case 0:	long value;
+case 1:	FooSeq chain;	// Illegal, Foo is not an enclosing struct or union
+};
+
+#endif // ERR01u
+
+
+#if defined ERR02s
+
+struct Foo;
+
+typedef sequence<Foo> FooSeq;
+typedef sequence<FooSeq> FooSeqSeq;
+
+struct Bar
+{	long value;
+	FooSeqSeq chain;	// Illegal, Foo is not an enclosing struct or union
+};
+
+#endif // ERR02s
+
+#if defined ERR03a
+
+struct Foo;				// Forward declaration
+typedef sequence<Foo> FooSeq;
+
+interface I
+{	attribute FooSeq a1;	// Illegal, defintion of Foo not known
+};
+
+struct Foo				// Provide definition of Foo
+{	long l_mem;
+	FooSeq chain;
+};
+
+#endif // ERR03a
+
+#if defined ERR03r
+
+struct Foo;				// Forward declaration
+typedef sequence<Foo> FooSeq;
+
+interface I
+{	FooSeq op();		// Illegal, defintion of Foo not known
+};
+
+struct Foo				// Provide definition of Foo
+{	long l_mem;
+	FooSeq chain;
+};
+
+#endif // ERR03r
+
+#if defined ERR03p
+
+struct Foo;				// Forward declaration
+typedef sequence<Foo> FooSeq;
+
+interface I
+{	void op(in FooSeq p1);	// Illegal, defintion of Foo not known
+};
+
+struct Foo				// Provide definition of Foo
+{	long l_mem;
+	FooSeq chain;
+};
+
+#endif // ERR03p
+
+#if defined ERR03e
+
+struct Foo;				// Forward declaration
+typedef sequence<Foo> FooSeq;
+
+exception ex1
+{	FooSeq info;
+};
+
+interface I
+{	void op(in FooSeq p1);	// Illegal, defintion of Foo not known
+};
+
+struct Foo				// Provide definition of Foo
+{	long l_mem;
+	FooSeq chain;
+};
+
+#endif // ERR03e
+
+#if defined ERR03ARR
+
+struct Foo;				// Forward declaration
+typedef sequence<Foo> FooSeq;
+
+typedef FooSeq ARR1[1];
+
+struct st2
+{
+	ARR1 info;
+	FooSeq arr2[2];
+};
+
+struct Foo				// Provide definition of Foo
+{	long l_mem;
+	FooSeq chain;
+};
+
+#endif // ERR03ARR
+
+#if defined ERR04DIM
+module DmitryBotcharnikov
+{
+	typedef long UniqueId;
+	
+	enum Type
+	{	OP_ID,
+		OP_POSITION
+	};
+	struct Position;
+
+	union ObjectPointer switch(Type)
+	{
+	case OP_ID:
+		UniqueId id;
+	case OP_POSITION:
+		Position pos;	// Type Position is incomplete
+	};
+
+	struct Position
+	{
+		unsigned long offset;
+		ObjectPointer pointer;
+	};
+};
+#endif // ERR04DIM
+
+#if defined ERR04DIM2
+module DmitryBotcharnikov
+{
+	typedef long UniqueId;
+	
+	enum Type
+	{	OP_ID,
+		OP_POSITION
+	};
+	struct Position;
+	typedef sequence<Position,1> PositionSeq;
+
+	union ObjectPointer switch(Type)
+	{
+	case OP_ID:
+		UniqueId id;
+	case OP_POSITION:
+		PositionSeq pos;
+		// Type `PositionSeq' is incomplete, definition of `Position' not known
+	};
+
+	struct Position
+	{
+		unsigned long offset;
+		ObjectPointer pointer;
+	};
+};
+#endif // ERR04DIM2

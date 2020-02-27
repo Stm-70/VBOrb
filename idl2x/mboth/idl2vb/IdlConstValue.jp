@@ -1,0 +1,147 @@
+#define JP_IDL2VB
+#define JP_PACKAGE mboth.idl2vb
+#define JP_HEAD
+
+	#include "../idl2lang/IdlConstValue.jp"
+
+	
+	/**
+	 *  @param	out		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public String getVbValueStr()
+	{
+		if(booleanVal != null)
+		{	if(booleanVal.booleanValue())
+				return VbWriter.TRUE;
+			else
+				return VbWriter.FALSE;
+		}else if(charVal != null)
+			return String.valueOf((int)charVal.charValue());
+		else if(longVal != null)
+			return longVal.toString();
+		else if(doubleVal != null)
+			return doubleVal.toString();
+		else if(stringVal != null)
+		{	StringBuffer sBuf= new StringBuffer(stringVal);
+			for(int i= sBuf.length(); i > 0; )
+			{	i--;
+				if(sBuf.charAt(i) == '"')
+					sBuf.insert(i, '"');
+			}
+			String str= sBuf.toString();
+			sBuf= new StringBuffer();
+			int pos;
+			boolean literal= false;
+			int litstart= 0;
+			for(pos= 0; pos < str.length(); pos++)
+			{	if((int)str.charAt(pos) < 32)
+				{	if(literal)
+					{	literal= false;
+						if(litstart != 0)
+							sBuf.append(" & ");
+						sBuf.append("\"" + str.substring(litstart, pos) + "\"");
+					}
+					if(pos != 0)
+						sBuf.append(" & ");
+					sBuf.append("CHR$(" + ((int)str.charAt(pos)) + ")");
+				}else if(!literal)
+				{	literal= true;
+					litstart= pos;
+				}
+			}
+			if(pos == 0)
+				sBuf.append("\"\"");
+			else if(literal)
+			{	literal= false;
+				if(litstart != 0)
+					sBuf.append(" & ");
+				sBuf.append("\"" + str.substring(litstart, pos) + "\"");
+			}
+			return sBuf.toString();
+		}else if(decimalVal != null)
+			// (If writing as property it is not allowed to declare
+			// more constants after that in Visual Basic.)
+			// CDec() does not work in VB constant definition.
+			//return "CDec(\"" + decimalVal.toString() + "\")";
+			return "\"" + decimalVal.toString() + "\"";
+		else
+			return "???";
+	}
+
+	/**
+	 *  @param	out		
+	 *
+	 *	@exception	java.io.IOException	
+	 */
+	public void writeVbValue(VbWriter out)
+		 throws java.io.IOException
+	{
+		if(stringVal == null)
+		{	out.write(this.getVbValueStr());
+		}else
+		{	StringBuffer sBuf= new StringBuffer(stringVal);
+			for(int i= sBuf.length(); i > 0; )
+			{	i--;
+				if(sBuf.charAt(i) == '"')
+					sBuf.insert(i, '"');
+			}
+			String str= sBuf.toString();
+			int pos;
+			boolean literal= false;
+			int litstart= 0;
+			for(pos= 0; pos < str.length(); pos++)
+			{	if((int)str.charAt(pos) < 32)
+				{	if(literal)
+					{	literal= false;
+						if(litstart != 0)
+							out.write(" & ");
+						out.write("\"" + str.substring(litstart, pos) + "\"");
+					}
+					if(pos != 0)
+						out.write(" & ");
+					switch(str.charAt(pos))
+					{
+					case 8:
+						out.write("vbBack");
+						break;
+					case 9:
+						out.write("vbTab");
+						break;
+					case 10:
+						out.write("vbLf");
+						break;
+					case 11:
+						out.write("vbVerticalTab");
+						break;
+					case 12:
+						out.write("vbFormFeed");
+						break;
+					case 13:
+						if(pos + 1 < str.length() && str.charAt(pos + 1) == 10)
+						{	pos++;
+							out.write("vbCrLf");
+						}else
+						{	out.write("vbCr");
+						}
+						break;
+					default:
+						out.write("CHR$(" + ((int)str.charAt(pos)) + ")");
+					}
+				}else if(!literal)
+				{	literal= true;
+					litstart= pos;
+				}
+			}
+			if(pos == 0)
+				out.write("\"\"");
+			else if(literal)
+			{	literal= false;
+				if(litstart != 0)
+					out.write(" & ");
+				out.write("\"" + str.substring(litstart, pos) + "\"");
+			}
+		}
+	}
+}
