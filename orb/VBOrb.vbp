@@ -1,5 +1,5 @@
 Type=OleDll
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\WINNT\System32\stdole2.tlb#OLE Automation
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
 Module=mVBOrb; mVBOrb.bas
 Class=cOrbException; cOrbException.cls
 Class=cOrbImpl; cOrbImpl.cls
@@ -79,6 +79,7 @@ FDIVCheck=0
 UnroundedFP=0
 StartMode=1
 Unattended=0
+Retained=0
 ThreadPerObject=0
 MaxNumberOfThreads=1
 
