@@ -1,0 +1,11 @@
+2020-02-27 22:08:14 Starting Server
+2020-02-27 22:08:14 D selectIIOPProfile 0
+2020-02-27 22:08:14 D SNCS-C= 10001, SNCS-W= 10109
+2020-02-27 22:08:14 D selectIIOPProfile 0
+2020-02-27 22:08:14 I c1 Open ORB connection to 10.0.3.5:2809
+2020-02-27 22:08:15 I CORBA System Exception: [IDL:omg.org/CORBA/TRANSIENT:1.0] minor code [0][NO], Connection refused, 10.0.3.5:2809
+2020-02-27 22:08:15 D unselectProfile
+2020-02-27 22:08:15 D selectIIOPProfile 0
+2020-02-27 22:08:15 D unselectProfile
+2020-02-27 22:08:15 D unselectProfile
+2020-02-27 22:08:15 ORB shutdown completed

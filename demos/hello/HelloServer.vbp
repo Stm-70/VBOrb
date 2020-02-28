@@ -1,6 +1,6 @@
 Type=Exe
-Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#C:\WINNT\System32\stdole2.tlb#OLE Automation
-Reference=*\G{571F4F59-0701-11D5-B71F-005004444546}#5c.0#0#..\..\orb\VBOrb.dll#
+Reference=*\G{00020430-0000-0000-C000-000000000046}#2.0#0#..\..\..\..\..\..\..\Windows\SysWOW64\stdole2.tlb#OLE Automation
+Reference=*\G{845F3564-8610-483F-A1AD-9D258F825C46}#1.0#0#..\..\orb\VBOrb123.dll#VBOrb
 Form=fHelloServer.frm
 Class=c_HelloAppHello; generated\c_HelloAppHello.cls
 Class=c_HelloAppHelloImplTie; generated\c_HelloAppHelloImplTie.cls
@@ -43,6 +43,7 @@ FDIVCheck=0
 UnroundedFP=0
 StartMode=0
 Unattended=0
+Retained=0
 ThreadPerObject=0
 MaxNumberOfThreads=1
 
