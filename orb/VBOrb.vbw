@@ -1,13 +1,13 @@
-mVBOrb = 0, 0, 0, 0, C
+mVBOrb = 78, 78, 945, 685, 
 cOrbException = 0, 0, 0, 0, C
 cOrbImpl = 0, 0, 0, 0, C
 cOrbObjRef = 0, 0, 0, 0, C
 cOrbRequest = 0, 0, 0, 0, C
 cOrbSkeleton = 0, 0, 0, 0, C
-cOrbSocket = 0, 0, 0, 0, C
+cOrbSocket = 104, 104, 971, 737, 
 cOrbStream = 0, 0, 0, 0, C
-cOrbAny = 0, 0, 0, 0, C
-cVBOrb = 0, 0, 0, 0, C
+cOrbAny = 52, 52, 919, 659, 
+cVBOrb = 26, 26, 893, 633, 
 cOrbValueBase = 0, 0, 0, 0, C
 cOrbAbstractBase = 0, 0, 0, 0, C
 cOrbValueFactory = 0, 0, 0, 0, C

@@ -1,0 +1,2 @@
+C:\Users\Muells\Documents\GitHub\VBOrb\orb.net\VBOrb.NET\obj\Release\ResolveAssemblyReference.cache
+C:\Users\Muells\Documents\GitHub\VBOrb\orb.net\VBOrb.NET\obj\Release\VBOrb.vbprojAssemblyReference.cache

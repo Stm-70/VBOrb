@@ -1,0 +1,242 @@
+﻿<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <MyType>Windows</MyType>
+    <ProductVersion>8.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{17D092A7-CC81-46F5-BAA2-DB6549BDC3C0}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <AssemblyName>VBOrb</AssemblyName>
+    <OutputType>Library</OutputType>
+    <AssemblyMajorVersion>1</AssemblyMajorVersion>
+    <AssemblyMinorVersion>2</AssemblyMinorVersion>
+    <AssemblyRevisionNumber>2</AssemblyRevisionNumber>
+    <GenerateRevisionNumber>False</GenerateRevisionNumber>
+    <AssemblyCompanyName>GNU</AssemblyCompanyName>
+    <RootNamespace>VBOrb</RootNamespace>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>.\bin\</OutputPath>
+    <DocumentationFile>VBOrb.xml</DocumentationFile>
+    <DebugSymbols>True</DebugSymbols>
+    <DefineDebug>True</DefineDebug>
+    <DefineTrace>True</DefineTrace>
+    <DefineConstants>Win32=True</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>.\bin\</OutputPath>
+    <DocumentationFile>VBOrb.xml</DocumentationFile>
+    <DebugSymbols>False</DebugSymbols>
+    <DefineDebug>False</DefineDebug>
+    <DefineTrace>True</DefineTrace>
+    <DefineConstants>Win32=True</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+    <NoWarn>42016,42017,42018,42019,42032</NoWarn>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic.Compatibility">
+      <Name>Microsoft.VisualBasic.Compatibility</Name>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <Name>System.Drawing</Name>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <Name>System.Windows.Forms</Name>
+    </Reference>
+    <Reference Include="System.XML">
+      <Name>System.XML</Name>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="Microsoft.VisualBasic.Compatibility" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.vb" />
+    <Compile Include="cCBIDLType.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBStringValue.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBStringValueVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBStructMember.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBStructMemberSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBUnionMember.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBUnionMemberSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBValueMember.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBValueMemberSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBWStringValue.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBWStringValueSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBWStringValueSeqVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cCBWStringValueVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbAbstractBase.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbAny.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbException.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbImpl.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbInvalidName.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbLongdouble.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbObject.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbObjRef.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbRequest.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbSkeleton.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbSocket.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbStream.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbTypeCode.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbTypeCodeBadKind.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbTypeCodeBounds.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbValueBase.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cOrbValueFactory.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="cVBOrb.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_AnySeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_BooleanSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_BooleanSeqVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_ByteSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_ByteSeqVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_CharSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_DoubleSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_IntegerSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_LongdoubleSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_LongSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_LongSeqVF.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_SingleSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_StringSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_VariantSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_WcharSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="c_WstringSeq.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="mCB.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="mCBIDLType.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="mVBOrb.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UpgradeSupport.vb">
+      <SubType>Code</SubType>
+    </Compile>
+    <None Include="_UpgradeReport.htm">
+      <SubType>Preview</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="My Project\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

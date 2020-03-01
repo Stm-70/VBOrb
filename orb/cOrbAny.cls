@@ -1,6 +1,10 @@
 VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
+  Persistable = 0  'NotPersistable
+  DataBindingBehavior = 0  'vbNone
+  DataSourceBehavior  = 0  'vbNone
+  MTSTransactionMode  = 0  'NotAnMTSObject
 END
 Attribute VB_Name = "cOrbAny"
 Attribute VB_GlobalNameSpace = False
@@ -426,7 +430,9 @@ End Function
 
 'Creates a new Any object whose value is a deep copy
 Public Function copy() As cOrbAny
+' not implemented
     Call mVBOrb.VBOrb.raiseNOIMPLEMENT(0, mVBOrb.VBOrb.CompletedNO)
+    Set copy = Nothing
 End Function
 
 Public Sub insertBoolean(ByVal val As Boolean)

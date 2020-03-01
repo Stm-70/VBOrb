@@ -522,7 +522,7 @@ Public Function objKey2String(ByRef objKey() As Byte) As String
 End Function
 
 Public Sub string2ObjKey(ByRef keyStr As String, ByRef objKey() As Byte)
-    If Len(keyStr) > 0 Then
+    If Len(keyStr) > 0 Then ' string is not emptyk
         Dim strPos As Long
         Dim keyLen As Long
         ReDim objKey(0 To Len(keyStr) - 1)
@@ -539,7 +539,7 @@ Public Sub string2ObjKey(ByRef keyStr As String, ByRef objKey() As Byte)
             keyLen = keyLen + 1
         Loop While strPos <= Len(keyStr)
         ReDim Preserve objKey(0 To keyLen - 1)
-    Else
+    Else ' should not end up here and i need to review if this below makes sense
         'UBound(objKey) = -1
         objKey = MidB(keyStr, 1, 0)
     End If
